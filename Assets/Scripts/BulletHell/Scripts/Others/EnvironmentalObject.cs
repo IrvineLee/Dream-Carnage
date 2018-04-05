@@ -2,8 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FallDown : MonoBehaviour 
+public class EnvironmentalObject : MonoBehaviour 
 {
+    public enum Type
+    {
+        GET_VALUE = 0,
+        DAMAGE_PLAYER
+    }
+    public Type type = Type.GET_VALUE;
+
     public enum State
     {
         FREE_FALL = 0,
@@ -14,6 +21,14 @@ public class FallDown : MonoBehaviour
     public float speed = 1;
     public float speedToPlayer = 3;
 
+    public enum Size
+    {
+        SMALL = 0,
+        BIG
+    };
+    public Size size = Size.SMALL;
+    public float value;
+
     Transform playerHitBox;
 
     void Start()
@@ -23,6 +38,8 @@ public class FallDown : MonoBehaviour
 
 	void Update () 
     {
+        if (GameManager.sSingleton.isTimeStopBomb) return;
+
         if (state == State.FREE_FALL)
         {
             Vector3 pos = transform.position;
@@ -38,6 +55,8 @@ public class FallDown : MonoBehaviour
 
     public void SetPlayer(Transform playerHitBox) 
     { 
+        if (state == State.MOVE_TOWARDS_PLAYER) return;
+
         state = State.MOVE_TOWARDS_PLAYER;
         this.playerHitBox = playerHitBox; 
     }

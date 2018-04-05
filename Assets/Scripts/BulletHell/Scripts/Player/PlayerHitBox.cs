@@ -13,18 +13,18 @@ public class PlayerHitBox : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.tag == TagManager.sSingleton.enemyTag || other.tag == TagManager.sSingleton.enemyBulletTag)
+        if (other.tag == TagManager.sSingleton.enemyBulletTag || other.tag == TagManager.sSingleton.ENV_OBJ_DamagePlayerTag)
         {
             mPlayerController.GetDamaged();
             if(!mPlayerController.IsInvinsible) other.gameObject.SetActive(false);
         }
-        else if (other.tag == TagManager.sSingleton.powerUpTag)
+        else if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUpTag)
         {
-            float val = other.GetComponent<PickUpValue>().value;
+            float val = other.GetComponent<EnvironmentalObject>().value;
             mPlayerController.GetPowerUp(val); 
             other.gameObject.SetActive(false);
         }
-        else if (other.tag == TagManager.sSingleton.scorePickUp)
+        else if (other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag)
         {
 //            GameManager.sSingleton.AddScore();
             other.gameObject.SetActive(false);

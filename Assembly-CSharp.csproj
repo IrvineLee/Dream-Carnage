@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{AE90831E-0B97-6862-2CB4-300460A4A5C9}</ProjectGuid>
+    <ProjectGuid>{8A4C4515-E1A3-36C6-10F6-42E431399F2E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -70,9 +70,8 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\UIManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DeadZone.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DestructableObject.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\EnvironmentalObject.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\FadeController.cs" />
-     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\FallDown.cs" />
-     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\PickUpValue.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\BombController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerHitBox.cs" />

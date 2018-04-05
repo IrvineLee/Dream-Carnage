@@ -52,9 +52,9 @@ public class PickUpManager : MonoBehaviour
             List<Transform> currPickUpList = mAllPickUpList[i].pickUpList;
             if (mAllPickUpList[i].type == PickUp.Type.POWER_UP)
             {
-                PickUpValue.Size size = mAllPickUpList[i].pickUpList[0].GetComponent<PickUpValue>().size;
-                if (size == PickUpValue.Size.SMALL) mPowerUpSmallList = currPickUpList;
-                else if (size == PickUpValue.Size.BIG) mPowerUpBigList = currPickUpList;
+                EnvironmentalObject.Size size = mAllPickUpList[i].pickUpList[0].GetComponent<EnvironmentalObject>().size;
+                if (size == EnvironmentalObject.Size.SMALL) mPowerUpSmallList = currPickUpList;
+                else if (size == EnvironmentalObject.Size.BIG) mPowerUpBigList = currPickUpList;
             }
             else if (mAllPickUpList[i].type == PickUp.Type.SCORE) mScorePickUpList = currPickUpList;
         }
@@ -85,7 +85,7 @@ public class PickUpManager : MonoBehaviour
             }
 
             PickUp.Type currType = PickUp.Type.POWER_UP;
-            if (pickUpName == TagManager.sSingleton.scorePickUp) currType = PickUp.Type.SCORE;
+            if (pickUpName == TagManager.sSingleton.UI_ScoreTag) currType = PickUp.Type.SCORE;
 
             mAllPickUpList.Add(new PickUp(currType, currPickUpList));
         }
@@ -109,9 +109,9 @@ public class PickUpManager : MonoBehaviour
                     currPoint.position = currBullet.position;
                     currPoint.gameObject.SetActive(true);
 
-                    FallDown fallDown = currPoint.GetComponent<FallDown>();
-                    fallDown.state = FallDown.State.MOVE_TOWARDS_PLAYER;
-                    fallDown.speedToPlayer = GameManager.sSingleton.pointPU_SpeedToPly;
+                    EnvironmentalObject currObj = currPoint.GetComponent<EnvironmentalObject>();
+                    currObj.state = EnvironmentalObject.State.MOVE_TOWARDS_PLAYER;
+                    currObj.speedToPlayer = GameManager.sSingleton.pointPU_SpeedToPly;
                     mCurrScorePickUp++;
                 }
             }

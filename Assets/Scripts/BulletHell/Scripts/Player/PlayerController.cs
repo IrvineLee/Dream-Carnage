@@ -229,7 +229,7 @@ public class PlayerController : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.tag == TagManager.sSingleton.powerUpTag || other.tag == TagManager.sSingleton.scorePickUp)
-            other.GetComponent<FallDown>().SetPlayer(transform);
+        if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUpTag || other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag)
+            other.GetComponent<EnvironmentalObject>().SetPlayer(transform);
     }
 }

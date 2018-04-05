@@ -87,11 +87,11 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < playerUI.childCount; i++)
         {
             Transform currChild = player1_UI.GetChild(i);
-            if (currChild.tag == TagManager.sSingleton.highScoreTag) playerUIList[index].highScore_UI = currChild.GetComponent<Text>();
-            else if (currChild.tag == TagManager.sSingleton.scoreTag) playerUIList[index].score_UI = currChild.GetComponent<Text>();
-            else if (currChild.tag == TagManager.sSingleton.lifePointTag) playerUIList[index].lifePointTrans = currChild;
-            else if (currChild.tag == TagManager.sSingleton.bombTag) playerUIList[index].bombTrans = currChild;
-            else if (currChild.tag == TagManager.sSingleton.powerLevelTag) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
+            if (currChild.tag == TagManager.sSingleton.UI_HighScoreTag) playerUIList[index].highScore_UI = currChild.GetComponent<Text>();
+            else if (currChild.tag == TagManager.sSingleton.UI_ScoreTag) playerUIList[index].score_UI = currChild.GetComponent<Text>();
+            else if (currChild.tag == TagManager.sSingleton.UI_LifePointTag) playerUIList[index].lifePointTrans = currChild;
+            else if (currChild.tag == TagManager.sSingleton.UI_BombTag) playerUIList[index].bombTrans = currChild;
+            else if (currChild.tag == TagManager.sSingleton.UI_PowerLevelTag) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
         }
 
         for (int i = 0; i < GameManager.sSingleton.plyStartLife; i++)
