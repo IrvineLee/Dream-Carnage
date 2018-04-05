@@ -64,6 +64,7 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\BulletManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\EnemyManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\GameManager.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\HazardManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\PickUpManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\PotraitShowManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\TagManager.cs" />

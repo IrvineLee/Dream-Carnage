@@ -15,8 +15,8 @@ public class TagManager : MonoBehaviour
 
     // Touhou tags.
     public string gmTag = "GameManager";
-    public string player1Tag = "Player";
-    public string player2Tag = "Player2";
+//    public string player1Tag = "Player";
+//    public string player2Tag = "Player2";
     public string hitboxTag = "Hitbox";
     public string player1BulletTag = "Player1Bullet";
     public string player2BulletTag = "Player2Bullet";
@@ -40,6 +40,7 @@ public class TagManager : MonoBehaviour
     public string player1Bullet = "Player1Bullet";
     public string player2Bullet = "Player2Bullet";
     public string enemy1Bullet = "Enemy1Bullet";
+//    public string hazardRock = "Rock";
 
     // Layers
     public string playerBulletLayer = "PlayerBullet";

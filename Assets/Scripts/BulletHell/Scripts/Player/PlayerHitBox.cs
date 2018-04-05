@@ -13,7 +13,7 @@ public class PlayerHitBox : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.tag == TagManager.sSingleton.enemyBulletTag || other.tag == TagManager.sSingleton.ENV_OBJ_DamagePlayerTag)
+        if (other.tag == TagManager.sSingleton.enemyBulletTag)
         {
             mPlayerController.GetDamaged();
             if(!mPlayerController.IsInvinsible) other.gameObject.SetActive(false);
@@ -29,5 +29,10 @@ public class PlayerHitBox : MonoBehaviour
 //            GameManager.sSingleton.AddScore();
             other.gameObject.SetActive(false);
         }
+    }
+
+    void OnTriggerStay2D(Collider2D other)
+    {
+        if (other.tag == TagManager.sSingleton.ENV_OBJ_DamagePlayerTag) mPlayerController.GetDamaged();
     }
 }

@@ -39,6 +39,7 @@ public class GameManager : MonoBehaviour
     public int p2BulletsTotal = 20;
     public int enemyBulletsTotal = 200;
     public int pickUpsTotal = 50;
+    public int hazardsTotal = 10;
 
     [HideInInspector] public bool isTimeStopBomb = false;
 
@@ -64,6 +65,7 @@ public class GameManager : MonoBehaviour
         }
 
         PickUpManager.sSingleton.InstantiateAndCachePickUp(pickUpsTotal);
+        HazardManager.sSingleton.InstantiateAndCacheHazards(hazardsTotal);
 	}
 
     public int TotalNumOfPlayer()
