@@ -7,7 +7,7 @@ public class PlayerBulletControl : BulletController
     public float secondaryBulletOffset = 0.2f;
 
     // Transform on screen.
-    List<BulletManager.GroupOfBullet.TypeOfBullet> mBulletGroupList = new List<BulletManager.GroupOfBullet.TypeOfBullet>();
+    List<BulletManager.Individual.TypeOfBullet> mBulletGroupList = new List<BulletManager.Individual.TypeOfBullet>();
     List<int> mBulletNumList = new List<int>();
 
     PlayerController mPlayerController;

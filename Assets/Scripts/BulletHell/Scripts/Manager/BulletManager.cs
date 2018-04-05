@@ -72,8 +72,8 @@ public class BulletManager : MonoBehaviour
         public float speed;
     }
 
-    // Group of bullets.
-    public class GroupOfBullet
+    // Group of individual bullets.
+    public class Individual
     {
         public string ownerName;
         public List<TypeOfBullet> typeOfBulletList;
@@ -96,13 +96,13 @@ public class BulletManager : MonoBehaviour
             }
         }
 
-        public GroupOfBullet()
+        public Individual()
         {
             this.ownerName = "";
             this.typeOfBulletList = new List<TypeOfBullet>();
         }
 
-        public GroupOfBullet(string name, List<TypeOfBullet> bulletGroupList)
+        public Individual(string name, List<TypeOfBullet> bulletGroupList)
         {
             this.ownerName = name;
             this.typeOfBulletList = bulletGroupList;
@@ -111,13 +111,14 @@ public class BulletManager : MonoBehaviour
 
     bool mIsDisableSpawnBullet = false;
     float mDisableSpawnBulletTimer = 0, mDisableSpawnBulletTime = 0;
+    float mReturnDefaultSpdDur = 0;
 
-    List<GroupOfBullet.TypeOfBullet> mP1BulletGroupList = new List<GroupOfBullet.TypeOfBullet>();
-    List<GroupOfBullet.TypeOfBullet> mP2BulletGroupList = new List<GroupOfBullet.TypeOfBullet>();
-    List<GroupOfBullet.TypeOfBullet> mEnemy1BulletGroupList = new List<GroupOfBullet.TypeOfBullet>();
+    List<Individual.TypeOfBullet> mP1BulletGroupList = new List<Individual.TypeOfBullet>();
+    List<Individual.TypeOfBullet> mP2BulletGroupList = new List<Individual.TypeOfBullet>();
+    List<Individual.TypeOfBullet> mEnemy1BulletGroupList = new List<Individual.TypeOfBullet>();
 
-    List<GroupOfBullet> mAllBulletList = new List<GroupOfBullet>();
-    List<GroupOfBullet> mAllEnemyBulletList = new List<GroupOfBullet>();
+    List<Individual> mAllBulletList = new List<Individual>();
+    List<Individual> mAllEnemyBulletList = new List<Individual>();
 
     // When player activated time stop bomb.
     List<Transform> mStoppedEnemyBullets = new List<Transform>();
@@ -138,6 +139,7 @@ public class BulletManager : MonoBehaviour
         if (mIsDisableSpawnBullet)
         {
             mDisableSpawnBulletTimer += Time.deltaTime;
+
             if (mDisableSpawnBulletTimer >= mDisableSpawnBulletTime)
             {
                 mDisableSpawnBulletTimer = 0;
@@ -145,7 +147,8 @@ public class BulletManager : MonoBehaviour
 
                 if (GameManager.sSingleton.isTimeStopBomb)
                 {
-                    EnableEnemyBulletMovement();
+                    mIsDisableSpawnBullet = true;
+                    EnableEnemyBulletMovement(mReturnDefaultSpdDur);
                     EnemyManager.sSingleton.EnableAllEnemy();
                 }
             }
@@ -157,19 +160,19 @@ public class BulletManager : MonoBehaviour
         for (int i = 0; i < mAllBulletList.Count; i++)
         {
             string ownerName = mAllBulletList[i].ownerName;
-            List<GroupOfBullet.TypeOfBullet> typeOfBulletList = mAllBulletList[i].typeOfBulletList;
+            List<Individual.TypeOfBullet> typeOfBulletList = mAllBulletList[i].typeOfBulletList;
 
             if (ownerName == TagManager.sSingleton.player1Bullet) mP1BulletGroupList = typeOfBulletList;
             else if (ownerName == TagManager.sSingleton.player2Bullet) mP2BulletGroupList = typeOfBulletList;
             else if (ownerName == TagManager.sSingleton.enemy1Bullet) 
             {
                 AddFromToList(typeOfBulletList, ref mEnemy1BulletGroupList);
-                mAllEnemyBulletList.Add(new GroupOfBullet("EnemyBullets", typeOfBulletList));
+                mAllEnemyBulletList.Add(new Individual("EnemyBullets", typeOfBulletList));
             }
         }
     }
 
-    void AddFromToList(List<GroupOfBullet.TypeOfBullet> fromList, ref List<GroupOfBullet.TypeOfBullet> toList)
+    void AddFromToList(List<Individual.TypeOfBullet> fromList, ref List<Individual.TypeOfBullet> toList)
     {
         for (int i = 0; i < fromList.Count; i++)
         {
@@ -184,11 +187,11 @@ public class BulletManager : MonoBehaviour
         }
     }
 
-    public List<GroupOfBullet.TypeOfBullet> GetPlayer1BulletGroup { get { return mP1BulletGroupList; } }
-    public List<GroupOfBullet.TypeOfBullet> GetPlayer2BulletGroup { get { return mP2BulletGroupList; } }
-    public List<GroupOfBullet.TypeOfBullet> GetEnemy1BulletGroup { get { return mEnemy1BulletGroupList; } }
+    public List<Individual.TypeOfBullet> GetPlayer1BulletGroup { get { return mP1BulletGroupList; } }
+    public List<Individual.TypeOfBullet> GetPlayer2BulletGroup { get { return mP2BulletGroupList; } }
+    public List<Individual.TypeOfBullet> GetEnemy1BulletGroup { get { return mEnemy1BulletGroupList; } }
 
-    public bool IsDisableSpawnBullet { get { return mIsDisableSpawnBullet; } }
+    public bool IsDisableSpawnBullet { get { return mIsDisableSpawnBullet; } set { mIsDisableSpawnBullet = value; } }
 
     public void InstantiateAndCacheBullet(Transform ownerTrans, int total)
     {
@@ -199,7 +202,7 @@ public class BulletManager : MonoBehaviour
         GameObject go = new GameObject();
         go.name = ownerTrans.name + "Bullet";   
 
-        List<GroupOfBullet.TypeOfBullet> typeOfBulletList = new List<GroupOfBullet.TypeOfBullet>();
+        List<Individual.TypeOfBullet> typeOfBulletList = new List<Individual.TypeOfBullet>();
 
         for (int i = 0; i < count; i++)
         {
@@ -239,56 +242,75 @@ public class BulletManager : MonoBehaviour
                 }
                 instantiatedList.Add(trans);
             }
-            GroupOfBullet.TypeOfBullet typeOfBullet = new GroupOfBullet.TypeOfBullet(goBulletName, instantiatedList);
+            Individual.TypeOfBullet typeOfBullet = new Individual.TypeOfBullet(goBulletName, instantiatedList);
             typeOfBulletList.Add(typeOfBullet);
         }
-        mAllBulletList.Add(new GroupOfBullet(go.name, typeOfBulletList));
+        mAllBulletList.Add(new Individual(go.name, typeOfBulletList));
+    }
+
+    public void TimeStopEffect(float stopDuration, float returnDefaultSpdDur)
+    {
+        DisableEnemyBulletMovement(stopDuration);
+        mReturnDefaultSpdDur = returnDefaultSpdDur;
     }
 
     public void DisableEnemyBullets(bool isDisableSpawnBullet)
     {
         // TODO : not enemy1bullets
-        int groupCount = mEnemy1BulletGroupList.Count;
-        for (int i = 0; i < groupCount; i++)
-        {
-            GroupOfBullet.TypeOfBullet currGroupOfBullet = mEnemy1BulletGroupList[i];
-            int bulletCount = currGroupOfBullet.bulletTransList.Count;
-
-            for (int j = 0; j < bulletCount; j++)
-            {
-                GameObject currGO = currGroupOfBullet.bulletTransList[j].gameObject;
-                SpriteRenderer sr = currGO.GetComponent<SpriteRenderer>();
-
-                currGO.GetComponent<Collider2D>().enabled = false;
-                StartCoroutine(IEAlphaOutSequence(sr));
-            }
-        }
-        mIsDisableSpawnBullet = isDisableSpawnBullet;
-        mDisableSpawnBulletTime = GameManager.sSingleton.enemyDisBulletTime;
-    }
-
-    void EnableEnemyBulletMovement()
-    {
-        for (int i = 0; i < mStoppedEnemyBullets.Count; i++)
-        {
-            mStoppedEnemyBullets[i].GetComponent<BulletMove>().MoveBullet();
-        }
-
-        GameManager.sSingleton.isTimeStopBomb = false;
-        mStoppedEnemyBullets.Clear();
-    }
-
-    public void DisableEnemyBulletMovement(float duration)
-    {
-        // Loop through all enemies.
         for (int i = 0; i < mAllEnemyBulletList.Count; i++)
         {
-            GroupOfBullet currEnemy = mAllEnemyBulletList[i];
+            Individual currEnemy = mAllEnemyBulletList[i];
 
             // Loop through all type of bullets of current enemy.
             for (int j = 0; j < currEnemy.typeOfBulletList.Count; j++)
             {
-                GroupOfBullet.TypeOfBullet currBulletType = currEnemy.typeOfBulletList[j];
+                Individual.TypeOfBullet currBulletType = currEnemy.typeOfBulletList[i];
+
+                // Loop through all the same bullet type.
+                for (int k = 0; k < currBulletType.bulletTransList.Count; k++)
+                {
+                    GameObject currBulletGO = currBulletType.bulletTransList[k].gameObject;
+                    SpriteRenderer sr = currBulletGO.GetComponent<SpriteRenderer>();
+
+                    currBulletGO.GetComponent<Collider2D>().enabled = false;
+                    StartCoroutine(IEAlphaOutSequence(sr));
+                }
+            }
+        }
+
+        mIsDisableSpawnBullet = isDisableSpawnBullet;
+        mDisableSpawnBulletTime = GameManager.sSingleton.enemyDisBulletTime;
+    }
+
+    void EnableEnemyBulletMovement(float duration)
+    {
+        bool isActive = false;
+        for (int i = 0; i < mStoppedEnemyBullets.Count; i++)
+        {
+            Transform currBullet = mStoppedEnemyBullets[i];
+            if (currBullet.gameObject.activeSelf)
+            {
+                isActive = true;
+                currBullet.GetComponent<BulletMove>().MoveBullet(duration);
+            }
+        }
+
+        // If any stopped bullet is not active, wait for the duration and disable time stop.
+        if (!isActive) StartCoroutine(WaitThenDisableTimeStop(duration));
+        mStoppedEnemyBullets.Clear();
+    }
+
+    void DisableEnemyBulletMovement(float duration)
+    {
+        // Loop through all enemies.
+        for (int i = 0; i < mAllEnemyBulletList.Count; i++)
+        {
+            Individual currEnemy = mAllEnemyBulletList[i];
+
+            // Loop through all type of bullets of current enemy.
+            for (int j = 0; j < currEnemy.typeOfBulletList.Count; j++)
+            {
+                Individual.TypeOfBullet currBulletType = currEnemy.typeOfBulletList[j];
 
                 // Loop through all the same bullet type.
                 for (int k = 0; k < currBulletType.bulletTransList.Count; k++)
@@ -328,5 +350,12 @@ public class BulletManager : MonoBehaviour
 
         sr.gameObject.GetComponent<Collider2D>().enabled = true;
         sr.gameObject.SetActive(false);
+    }
+
+    IEnumerator WaitThenDisableTimeStop (float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        GameManager.sSingleton.isTimeStopBomb = false;
+        mIsDisableSpawnBullet = false;
     }
 }

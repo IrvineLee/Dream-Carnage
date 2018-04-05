@@ -39,7 +39,7 @@ public class EnemyBase : MonoBehaviour
     public List<Movement> movementList = new List<Movement>();
 
     protected Transform mPlayer1, mPlayer2;
-    protected List<BulletManager.GroupOfBullet.TypeOfBullet> mTypeOfBulletList;
+    protected List<BulletManager.Individual.TypeOfBullet> mTypeOfBulletList;
     protected MagicCirlce mMagicCircle;
 
     protected int mCurrActionNum = 0;

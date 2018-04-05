@@ -112,9 +112,12 @@ public class BulletMove : MonoBehaviour
         mAngle = 0;
     }
 
-    public void MoveBullet()
+    // Duration it takes for the bullet to return to default speed.
+    public void MoveBullet(float duration)
     {
-        bullet.speed = mSavedSpeed;
+//        bullet.speed = mSavedSpeed;
+        StartCoroutine(ReturnDefaultSpeedSequence(duration, mSavedSpeed));
+//        ;
     }
 
     public void StopBullet()
@@ -131,5 +134,23 @@ public class BulletMove : MonoBehaviour
     { 
         get { return bullet.direction; } 
         set { bullet.direction = value; }
+    }
+
+    IEnumerator ReturnDefaultSpeedSequence (float duration, float defaultSpeed)
+    {
+        float currTime = 0;
+
+        while(bullet.speed != defaultSpeed)
+        {
+            bullet.speed = currTime / duration * defaultSpeed; 
+
+            currTime += Time.deltaTime;
+            if (currTime > duration) currTime = duration;
+
+            yield return null;
+        }
+
+        GameManager.sSingleton.isTimeStopBomb = false;
+        BulletManager.sSingleton.IsDisableSpawnBullet = false;
     }
 }

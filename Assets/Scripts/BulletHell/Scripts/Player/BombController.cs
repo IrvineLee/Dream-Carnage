@@ -12,13 +12,14 @@ public class BombController : MonoBehaviour
     public Type type = Type.NONE;
 
     public float duration = 3.0f;
+    public float returnDefaultSpdDur = 1.0f;
 
     public void ActivateBomb()
     {
         if (type == Type.TIME_STOP)
         {
             EnemyManager.sSingleton.StopAllEnemy();
-            BulletManager.sSingleton.DisableEnemyBulletMovement(duration);
+            BulletManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
         }
     }
 }

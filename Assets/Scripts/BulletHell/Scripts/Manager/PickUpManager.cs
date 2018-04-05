@@ -95,11 +95,11 @@ public class PickUpManager : MonoBehaviour
     public List<Transform> GetBigPowerUpList { get { return mPowerUpBigList; } }
     public List<Transform> GetScorePickUpList { get { return mScorePickUpList; } }
 
-    public void TransformBulletsIntoPoints(List<BulletManager.GroupOfBullet.TypeOfBullet> typeOfBulletList)
+    public void TransformBulletsIntoPoints(List<BulletManager.Individual.TypeOfBullet> typeOfBulletList)
     {
         for (int i = 0; i < typeOfBulletList.Count; i++)
         {
-            BulletManager.GroupOfBullet.TypeOfBullet currTypeOfBullets = typeOfBulletList[i];
+            BulletManager.Individual.TypeOfBullet currTypeOfBullets = typeOfBulletList[i];
             for (int j = 0; j < currTypeOfBullets.bulletTransList.Count; j++)
             {
                 Transform currBullet = currTypeOfBullets.bulletTransList[j];
