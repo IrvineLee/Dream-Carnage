@@ -16,12 +16,20 @@ public class BombController : MonoBehaviour
 
     public void ActivateBomb()
     {
-        if (type == Type.TIME_STOP)
+        if (type == Type.TIME_STOP && !GameManager.sSingleton.isTimeStopBomb)
         {
             GameManager.sSingleton.isTimeStopBomb = true;
             EnemyManager.sSingleton.StopAllEnemy();
             BulletManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
             PickUpManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
+            StartCoroutine(WaitThenDisableTimeStop(duration + returnDefaultSpdDur));
         }
+    }
+
+    IEnumerator WaitThenDisableTimeStop (float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        GameManager.sSingleton.isTimeStopBomb = false;
+        BulletManager.sSingleton.ResetValAfterTimeStop();
     }
 }

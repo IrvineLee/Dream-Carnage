@@ -138,16 +138,17 @@ public class BulletMove : MonoBehaviour
     {
         float currTime = 0;
 
-        while(bullet.speed != defaultSpeed)
+        while(currTime < duration)
         {
-            currTime += Time.deltaTime;
             bullet.speed = currTime / duration * defaultSpeed; 
 
-            if (currTime > duration) currTime = duration;
+            currTime += Time.deltaTime;
+            if (currTime >= duration) bullet.speed = defaultSpeed;
+
             yield return null;
         }
 
-        if(GameManager.sSingleton.isTimeStopBomb) GameManager.sSingleton.isTimeStopBomb = false;
-        if(BulletManager.sSingleton.IsDisableSpawnBullet) BulletManager.sSingleton.IsDisableSpawnBullet = false;
+//        if(GameManager.sSingleton.isTimeStopBomb) GameManager.sSingleton.isTimeStopBomb = false;
+//        if(BulletManager.sSingleton.IsDisableSpawnBullet) BulletManager.sSingleton.IsDisableSpawnBullet = false;
     }
 }

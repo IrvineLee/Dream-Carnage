@@ -248,12 +248,6 @@ public class BulletManager : MonoBehaviour
         mAllBulletList.Add(new Individual(go.name, typeOfBulletList));
     }
 
-    public void TimeStopEffect(float stopDuration, float returnDefaultSpdDur)
-    {
-        DisableEnemyBulletMovement(stopDuration);
-        mReturnDefaultSpdDur = returnDefaultSpdDur;
-    }
-
     public void DisableEnemyBullets(bool isDisableSpawnBullet)
     {
         for (int i = 0; i < mAllEnemyBulletList.Count; i++)
@@ -281,21 +275,19 @@ public class BulletManager : MonoBehaviour
         mDisableSpawnBulletTime = GameManager.sSingleton.enemyDisBulletTime;
     }
 
+    public void TimeStopEffect(float stopDuration, float returnDefaultSpdDur)
+    {
+        DisableEnemyBulletMovement(stopDuration);
+        mReturnDefaultSpdDur = returnDefaultSpdDur;
+    }
+
     void EnableEnemyBulletMovement(float duration)
     {
-        bool isActive = false;
         for (int i = 0; i < mStoppedEnemyBulletsList.Count; i++)
         {
             Transform currBullet = mStoppedEnemyBulletsList[i];
-            if (currBullet.gameObject.activeSelf)
-            {
-                isActive = true;
-                currBullet.GetComponent<BulletMove>().EnableSpeed(duration);
-            }
+            if (currBullet.gameObject.activeSelf) currBullet.GetComponent<BulletMove>().EnableSpeed(duration);
         }
-
-        // If any stopped bullet is not active, wait for the duration and disable time stop.
-        if (!isActive) StartCoroutine(WaitThenDisableTimeStop(duration));
         mStoppedEnemyBulletsList.Clear();
     }
 
@@ -329,6 +321,12 @@ public class BulletManager : MonoBehaviour
         mDisableSpawnBulletTime = duration;
     }
 
+    public void ResetValAfterTimeStop()
+    {
+        mIsDisableSpawnBullet = false;
+        mDisableSpawnBulletTimer = 0;
+    }
+
     IEnumerator IEAlphaOutSequence (SpriteRenderer sr)
     {
         Color color = Color.white;
@@ -348,12 +346,5 @@ public class BulletManager : MonoBehaviour
 
         sr.gameObject.GetComponent<Collider2D>().enabled = true;
         sr.gameObject.SetActive(false);
-    }
-
-    IEnumerator WaitThenDisableTimeStop (float duration)
-    {
-        yield return new WaitForSeconds(duration);
-        GameManager.sSingleton.isTimeStopBomb = false;
-        mIsDisableSpawnBullet = false;
     }
 }

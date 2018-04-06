@@ -76,12 +76,12 @@ public class EnvironmentalObject : MonoBehaviour
     {
         float currTime = 0;
 
-        while(speed != defaultSpeed)
+        while(currTime < duration)
         {
-            currTime += Time.deltaTime;
             speed = currTime / duration * defaultSpeed; 
 
-            if (currTime > duration) currTime = duration;
+            currTime += Time.deltaTime;
+            if (currTime >= duration) speed = defaultSpeed;
             yield return null;
         }
     }
