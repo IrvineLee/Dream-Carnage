@@ -29,7 +29,8 @@ public class EnemyBase : MonoBehaviour
     }
 
     // Status.
-    public int hitPoint = 100;
+    public int currHitPoint = 100;
+    public int totalHitPoint = 100;
     public float moveSpeed = 1;
     public int scoreGetPerBullet = 100;
 
@@ -125,8 +126,8 @@ public class EnemyBase : MonoBehaviour
 
     void GetDamaged(int damagedValue)
     {
-        hitPoint -= damagedValue;
-        if (hitPoint <= 0)
+        currHitPoint -= damagedValue;
+        if (currHitPoint <= 0)
         {
             // TODO: Enemy destroyed animation..
             Destroy(gameObject);

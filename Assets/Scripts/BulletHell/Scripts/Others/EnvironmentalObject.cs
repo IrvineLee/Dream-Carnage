@@ -29,17 +29,16 @@ public class EnvironmentalObject : MonoBehaviour
     public Size size = Size.SMALL;
     public float value;
 
-    Transform playerHitBox;
+    Transform mPlayerHitBox;
+    float mSavedSpeed;
 
     void Start()
     {
-        playerHitBox = GameObject.FindGameObjectWithTag(TagManager.sSingleton.hitboxTag).transform;
+        mPlayerHitBox = GameObject.FindGameObjectWithTag(TagManager.sSingleton.hitboxTag).transform;
     }
 
 	void Update () 
     {
-        if (GameManager.sSingleton.isTimeStopBomb) return;
-
         if (state == State.FREE_FALL)
         {
             Vector3 pos = transform.position;
@@ -49,7 +48,7 @@ public class EnvironmentalObject : MonoBehaviour
         else if (state == State.MOVE_TOWARDS_PLAYER)
         {
             float step = speedToPlayer * Time.deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, playerHitBox.position, step);
+            transform.position = Vector3.MoveTowards(transform.position, mPlayerHitBox.position, step);
         }
 	}
 
@@ -58,6 +57,32 @@ public class EnvironmentalObject : MonoBehaviour
         if (state == State.MOVE_TOWARDS_PLAYER) return;
 
         state = State.MOVE_TOWARDS_PLAYER;
-        this.playerHitBox = playerHitBox; 
+        mPlayerHitBox = playerHitBox; 
+    }
+
+    // Duration it takes for the bullet to return to default speed.
+    public void EnableSpeed(float duration)
+    {
+        StartCoroutine(ReturnDefaultSpeedSequence(duration, mSavedSpeed));
+    }
+
+    public void DisableSpeed()
+    {
+        mSavedSpeed = speed;
+        speed = 0;
+    }
+
+    IEnumerator ReturnDefaultSpeedSequence (float duration, float defaultSpeed)
+    {
+        float currTime = 0;
+
+        while(speed != defaultSpeed)
+        {
+            currTime += Time.deltaTime;
+            speed = currTime / duration * defaultSpeed; 
+
+            if (currTime > duration) currTime = duration;
+            yield return null;
+        }
     }
 }

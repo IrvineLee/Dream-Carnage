@@ -121,7 +121,7 @@ public class BulletManager : MonoBehaviour
     List<Individual> mAllEnemyBulletList = new List<Individual>();
 
     // When player activated time stop bomb.
-    List<Transform> mStoppedEnemyBullets = new List<Transform>();
+    List<Transform> mStoppedEnemyBulletsList = new List<Transform>();
 
     void Awake()
     {
@@ -256,7 +256,6 @@ public class BulletManager : MonoBehaviour
 
     public void DisableEnemyBullets(bool isDisableSpawnBullet)
     {
-        // TODO : not enemy1bullets
         for (int i = 0; i < mAllEnemyBulletList.Count; i++)
         {
             Individual currEnemy = mAllEnemyBulletList[i];
@@ -285,19 +284,19 @@ public class BulletManager : MonoBehaviour
     void EnableEnemyBulletMovement(float duration)
     {
         bool isActive = false;
-        for (int i = 0; i < mStoppedEnemyBullets.Count; i++)
+        for (int i = 0; i < mStoppedEnemyBulletsList.Count; i++)
         {
-            Transform currBullet = mStoppedEnemyBullets[i];
+            Transform currBullet = mStoppedEnemyBulletsList[i];
             if (currBullet.gameObject.activeSelf)
             {
                 isActive = true;
-                currBullet.GetComponent<BulletMove>().MoveBullet(duration);
+                currBullet.GetComponent<BulletMove>().EnableSpeed(duration);
             }
         }
 
         // If any stopped bullet is not active, wait for the duration and disable time stop.
         if (!isActive) StartCoroutine(WaitThenDisableTimeStop(duration));
-        mStoppedEnemyBullets.Clear();
+        mStoppedEnemyBulletsList.Clear();
     }
 
     void DisableEnemyBulletMovement(float duration)
@@ -319,14 +318,13 @@ public class BulletManager : MonoBehaviour
 
                     if (currBullet.gameObject.activeSelf)
                     {
-                        currBullet.gameObject.GetComponent<BulletMove>().StopBullet();
-                        mStoppedEnemyBullets.Add(currBullet);
+                        currBullet.gameObject.GetComponent<BulletMove>().DisableSpeed();
+                        mStoppedEnemyBulletsList.Add(currBullet);
                     }
                 }
             }
         }
 
-        GameManager.sSingleton.isTimeStopBomb = true;
         mIsDisableSpawnBullet = true;
         mDisableSpawnBulletTime = duration;
     }

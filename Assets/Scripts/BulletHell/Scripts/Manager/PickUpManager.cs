@@ -33,11 +33,14 @@ public class PickUpManager : MonoBehaviour
     public List<Transform> pickUpList = new List<Transform>();
 
     int mCurrScorePickUp = 0;
+    float mDisablePickUpTimer, mDisablePickUpTime = 0, mReturnDefaultSpdDur = 0;
 
     List<Transform> mPowerUpSmallList = new List<Transform>();
     List<Transform> mPowerUpBigList = new List<Transform>();
     List<Transform> mScorePickUpList = new List<Transform>();
     List<PickUp> mAllPickUpList = new List<PickUp>();
+
+    List<Transform> mStoppedEnvObjList = new List<Transform>();
 
     void Awake()
     {
@@ -57,6 +60,20 @@ public class PickUpManager : MonoBehaviour
                 else if (size == EnvironmentalObject.Size.BIG) mPowerUpBigList = currPickUpList;
             }
             else if (mAllPickUpList[i].type == PickUp.Type.SCORE) mScorePickUpList = currPickUpList;
+        }
+    }
+
+    void Update()
+    {
+        if (mDisablePickUpTime != 0)
+        {
+            mDisablePickUpTimer += Time.deltaTime;
+            if (mDisablePickUpTimer > mDisablePickUpTime)
+            {
+                mDisablePickUpTime = 0;
+                mDisablePickUpTimer = 0;
+                EnablePickUpMovement(mReturnDefaultSpdDur);
+            }
         }
     }
 
@@ -116,5 +133,52 @@ public class PickUpManager : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void TimeStopEffect(float stopDuration, float returnDefaultSpdDur)
+    {
+        DisablePickUpMovement(stopDuration);
+        mReturnDefaultSpdDur = returnDefaultSpdDur;
+    }
+
+    void EnablePickUpMovement(float duration)
+    {
+        bool isActive = false;
+        for (int i = 0; i < mStoppedEnvObjList.Count; i++)
+        {
+            Transform currTrans = mStoppedEnvObjList[i];
+            if (currTrans.gameObject.activeSelf)
+            {
+                isActive = true;
+                currTrans.GetComponent<EnvironmentalObject>().EnableSpeed(duration);
+            }
+        }
+
+        // If any stopped bullet is not active, wait for the duration and disable time stop.
+//        if (!isActive) StartCoroutine(WaitThenDisableTimeStop(duration));
+        mStoppedEnvObjList.Clear();
+    }
+
+    void DisablePickUpMovement(float duration)
+    {
+        // Loop through all pick-ups.
+        for (int i = 0; i < mAllPickUpList.Count; i++)
+        {
+            PickUp currPickUp = mAllPickUpList[i];
+
+            // Loop through all the same type of pick-ups.
+            for (int j = 0; j < currPickUp.pickUpList.Count; j++)
+            {
+                Transform currTrans = currPickUp.pickUpList[j];
+
+                if (currTrans.gameObject.activeSelf)
+                {
+                    currTrans.gameObject.GetComponent<EnvironmentalObject>().DisableSpeed();
+                    mStoppedEnvObjList.Add(currTrans);
+                }
+            }
+        }
+
+        mDisablePickUpTime = duration;
     }
 }

@@ -18,8 +18,10 @@ public class BombController : MonoBehaviour
     {
         if (type == Type.TIME_STOP)
         {
+            GameManager.sSingleton.isTimeStopBomb = true;
             EnemyManager.sSingleton.StopAllEnemy();
             BulletManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
+            PickUpManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
         }
     }
 }

@@ -113,14 +113,12 @@ public class BulletMove : MonoBehaviour
     }
 
     // Duration it takes for the bullet to return to default speed.
-    public void MoveBullet(float duration)
+    public void EnableSpeed(float duration)
     {
-//        bullet.speed = mSavedSpeed;
         StartCoroutine(ReturnDefaultSpeedSequence(duration, mSavedSpeed));
-//        ;
     }
 
-    public void StopBullet()
+    public void DisableSpeed()
     {
         mSavedSpeed = bullet.speed;
         bullet.speed = 0;
@@ -142,15 +140,14 @@ public class BulletMove : MonoBehaviour
 
         while(bullet.speed != defaultSpeed)
         {
+            currTime += Time.deltaTime;
             bullet.speed = currTime / duration * defaultSpeed; 
 
-            currTime += Time.deltaTime;
             if (currTime > duration) currTime = duration;
-
             yield return null;
         }
 
-        GameManager.sSingleton.isTimeStopBomb = false;
-        BulletManager.sSingleton.IsDisableSpawnBullet = false;
+        if(GameManager.sSingleton.isTimeStopBomb) GameManager.sSingleton.isTimeStopBomb = false;
+        if(BulletManager.sSingleton.IsDisableSpawnBullet) BulletManager.sSingleton.IsDisableSpawnBullet = false;
     }
 }

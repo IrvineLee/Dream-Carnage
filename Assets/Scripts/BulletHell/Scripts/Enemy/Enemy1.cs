@@ -5,6 +5,8 @@ using System;
 
 public class Enemy1 : EnemyBase 
 {
+    public Transform healthBarTrans;
+
     static int mBulletNum = 0;
 
     int mCurrMoveNum = 0;
@@ -145,6 +147,7 @@ public class Enemy1 : EnemyBase
         if (other is BoxCollider2D)
         {
             gameObject.GetComponentInParent<EnemyBase>().PullTrigger(other);
+            healthBarTrans.GetComponent<EnemyHealth>().UpdateHpBarUI(currHitPoint, totalHitPoint);
         }
     }
 }

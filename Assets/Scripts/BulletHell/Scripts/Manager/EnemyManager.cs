@@ -7,7 +7,7 @@ public class EnemyManager : MonoBehaviour
     public static EnemyManager sSingleton { get { return _sSingleton; } }
     static EnemyManager _sSingleton;
 
-    public List<Transform> EnemyList = new List<Transform>();
+    [HideInInspector] public List<Transform> EnemyList = new List<Transform>();
 
     void Awake()
     {
