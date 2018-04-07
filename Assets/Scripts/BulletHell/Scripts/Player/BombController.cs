@@ -23,8 +23,11 @@ public class BombController : MonoBehaviour
             mIsUsingBomb = true;
             GameManager.sSingleton.isTimeStopBomb = true;
             EnemyManager.sSingleton.StopAllEnemy();
+
             BulletManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
             PickUpManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
+            HazardManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
+
             StartCoroutine(WaitThenDisableTimeStop(duration + returnDefaultSpdDur));
         }
     }

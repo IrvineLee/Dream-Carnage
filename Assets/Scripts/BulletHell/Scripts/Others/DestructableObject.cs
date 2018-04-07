@@ -8,6 +8,16 @@ public class DestructableObject : MonoBehaviour
     public float impactMultiplier = 1.0f;
     public float scoreMultiplier = 1.0f;
 
+    PlayerController mPlayer1Controller, mPlayer2Controller;
+
+    void Start()
+    {
+        mPlayer1Controller = GameManager.sSingleton.player1.GetComponent<PlayerController>();
+
+        if (GameManager.sSingleton.player2 != null)
+            mPlayer2Controller = GameManager.sSingleton.player2.GetComponent<PlayerController>();
+    }
+
     void OnTriggerEnter2D(Collider2D other)
     {
         string otherLayerName = LayerMask.LayerToName(other.gameObject.layer);
@@ -24,10 +34,16 @@ public class DestructableObject : MonoBehaviour
                 transform.position = pos;
 
                 // Update player's score.
-                int playerNum = 0;
-                if (other.tag == TagManager.sSingleton.player1BulletTag) playerNum = 1;
-                else if (other.tag == TagManager.sSingleton.player2BulletTag) playerNum = 2;
-                UIManager.sSingleton.UpdateScore(playerNum, (int)(damage * scoreMultiplier));
+                if (other.tag == TagManager.sSingleton.player1BulletTag)
+                {
+                    mPlayer1Controller.UpdateLinkBar();
+                    mPlayer1Controller.UpdateScore((int)(damage * scoreMultiplier));
+                }
+                else if (other.tag == TagManager.sSingleton.player2BulletTag)
+                {
+                    mPlayer2Controller.UpdateLinkBar();
+                    mPlayer2Controller.UpdateScore((int)(damage * scoreMultiplier));
+                }
 
                 // TODO : Effect it does when contact.
                 other.gameObject.SetActive(false);

@@ -40,6 +40,7 @@ public class UIManager : MonoBehaviour
     }
     List<PlayerInfo> playerUIList = new List<PlayerInfo>();
 
+    Transform mMaxTrans;
     Text mSecondText, mMilliSecondText;
     float mDuration = 0;
 
@@ -92,7 +93,18 @@ public class UIManager : MonoBehaviour
             else if (currChild.name == TagManager.sSingleton.UI_LifePointName) playerUIList[index].lifePointTrans = currChild;
             else if (currChild.name == TagManager.sSingleton.UI_BombName) playerUIList[index].bombTrans = currChild;
             else if (currChild.name == TagManager.sSingleton.UI_PowerLevelName) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
-            else if (currChild.name == TagManager.sSingleton.UI_LinkBarName) playerUIList[index].linkBarImage = currChild.GetChild(0).GetComponent<Image>();
+            else if (currChild.name == TagManager.sSingleton.UI_LinkBarName) 
+            {
+                for (int j = 0; j < currChild.childCount; j++)
+                {
+                    Transform currGrandChild = currChild.GetChild(j);
+
+                    if (currGrandChild.name == TagManager.sSingleton.UI_LinkBarInsideName)
+                        playerUIList[index].linkBarImage = currGrandChild.GetComponent<Image>();
+                    else if (currGrandChild.name == TagManager.sSingleton.UI_LinkMaxName)
+                        mMaxTrans = currGrandChild;
+                }
+            }
         }
 
         for (int i = 0; i < GameManager.sSingleton.plyStartLife; i++)
@@ -143,6 +155,7 @@ public class UIManager : MonoBehaviour
     public void UpdateLinkBar(int player, float linkVal)
     {
         playerUIList[player - 1].linkBarImage.fillAmount = linkVal;
+        if (linkVal >= 1) mMaxTrans.gameObject.SetActive(true);
     }
 
     public void ActivateBossTimer(float duration)

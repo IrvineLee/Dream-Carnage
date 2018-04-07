@@ -88,18 +88,18 @@ public class EnemyBase : MonoBehaviour
 
         if (other.tag == p1Tag || other.tag == p2Tag)
         {
-            int dmg = other.GetComponent<BulletMove>().GetBulletDamage;
-            GetDamaged(dmg);
+            int damage = other.GetComponent<BulletMove>().GetBulletDamage;
+            GetDamaged(damage);
 
             if (other.tag == p1Tag)
             {
                 mPlayer1Controller.UpdateLinkBar();
-                mPlayer1Controller.UpdateScore((int)(dmg * scoreMultiplier));
+                mPlayer1Controller.UpdateScore((int)(damage * scoreMultiplier));
             }
             else if (other.tag == p2Tag)
             {
                 mPlayer2Controller.UpdateLinkBar();
-                mPlayer2Controller.UpdateScore((int)(dmg * scoreMultiplier));
+                mPlayer2Controller.UpdateScore((int)(damage * scoreMultiplier));
             }
         }
 

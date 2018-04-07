@@ -41,6 +41,9 @@ public class TagManager : MonoBehaviour
     public string UI_PowerLevelName = "Power_Display";
     public string UI_BombName = "Bomb_Display";
     public string UI_LinkBarName = "LinkBar_Display";
+    public string UI_LinkBarInsideName = "LinkBarInside";
+    public string UI_LinkMaxName = "Max";
+
 //    public string hazardRock = "Rock";
 
     // Layers
