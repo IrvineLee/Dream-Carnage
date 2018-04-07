@@ -16,6 +16,7 @@ public class UIManager : MonoBehaviour
     {
         public Transform lifePointTrans = null, bombTrans = null;
         public Text powerLevel_UI, highScore_UI, score_UI;
+        public Image linkBarImage;
         public int score;
 
         public PlayerInfo()
@@ -25,16 +26,18 @@ public class UIManager : MonoBehaviour
             powerLevel_UI = null;
             highScore_UI = null;
             score_UI = null;
+            linkBarImage = null;
             score = 0;
         }
 
-        public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Text powerLevel, Text highScore, Text score)
+        public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Text powerLevel, Text highScore, Image linkBarImage, Text score)
         {
             this.lifePointTrans = lifePointTrans;
             this.bombTrans = bombTrans;
             this.powerLevel_UI = powerLevel;
             this.highScore_UI = highScore;
             this.score_UI = score;
+            this.linkBarImage = linkBarImage;
             this.score = 0;
         }
     }
@@ -87,11 +90,12 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < playerUI.childCount; i++)
         {
             Transform currChild = player1_UI.GetChild(i);
-            if (currChild.tag == TagManager.sSingleton.UI_HighScoreTag) playerUIList[index].highScore_UI = currChild.GetComponent<Text>();
-            else if (currChild.tag == TagManager.sSingleton.UI_ScoreTag) playerUIList[index].score_UI = currChild.GetComponent<Text>();
-            else if (currChild.tag == TagManager.sSingleton.UI_LifePointTag) playerUIList[index].lifePointTrans = currChild;
-            else if (currChild.tag == TagManager.sSingleton.UI_BombTag) playerUIList[index].bombTrans = currChild;
-            else if (currChild.tag == TagManager.sSingleton.UI_PowerLevelTag) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
+            if (currChild.name == TagManager.sSingleton.UI_HighScoreName) playerUIList[index].highScore_UI = currChild.GetComponent<Text>();
+            else if (currChild.name == TagManager.sSingleton.UI_ScoreName) playerUIList[index].score_UI = currChild.GetComponent<Text>();
+            else if (currChild.name == TagManager.sSingleton.UI_LifePointName) playerUIList[index].lifePointTrans = currChild;
+            else if (currChild.name == TagManager.sSingleton.UI_BombName) playerUIList[index].bombTrans = currChild;
+            else if (currChild.name == TagManager.sSingleton.UI_PowerLevelName) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
+            else if (currChild.name == TagManager.sSingleton.UI_LinkBarName) playerUIList[index].linkBarImage = currChild.GetChild(0).GetComponent<Image>();
         }
 
         for (int i = 0; i < GameManager.sSingleton.plyStartLife; i++)
@@ -125,6 +129,24 @@ public class UIManager : MonoBehaviour
         PlayerInfo currPlayer = playerUIList[player - 1];
         currPlayer.score += addPoints;
         currPlayer.score_UI.text = GetScoreWithZero(currPlayer.score.ToString());
+    }
+
+    public void UpdateBomb(int player, int currBomb)
+    {
+        for (int i = 0; i < GameManager.sSingleton.plyMaxBomb; i++)
+        {
+            Transform currTrans = playerUIList[player - 1].bombTrans.GetChild(i);
+
+            if (currBomb > 0) currTrans.gameObject.SetActive(true);
+            else currTrans.gameObject.SetActive(false);
+
+            currBomb--;
+        }
+    }
+
+    public void UpdateLinkBar(int player, float linkVal)
+    {
+        playerUIList[player - 1].linkBarImage.fillAmount = linkVal;
     }
 
     public void ActivateBossTimer(float duration)

@@ -147,8 +147,5 @@ public class BulletMove : MonoBehaviour
 
             yield return null;
         }
-
-//        if(GameManager.sSingleton.isTimeStopBomb) GameManager.sSingleton.isTimeStopBomb = false;
-//        if(BulletManager.sSingleton.IsDisableSpawnBullet) BulletManager.sSingleton.IsDisableSpawnBullet = false;
     }
 }

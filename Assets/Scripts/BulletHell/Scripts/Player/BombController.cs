@@ -14,10 +14,13 @@ public class BombController : MonoBehaviour
     public float duration = 3.0f;
     public float returnDefaultSpdDur = 1.0f;
 
+    bool mIsUsingBomb = false;
+
     public void ActivateBomb()
     {
-        if (type == Type.TIME_STOP && !GameManager.sSingleton.isTimeStopBomb)
+        if (type == Type.TIME_STOP && !mIsUsingBomb)
         {
+            mIsUsingBomb = true;
             GameManager.sSingleton.isTimeStopBomb = true;
             EnemyManager.sSingleton.StopAllEnemy();
             BulletManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
@@ -26,9 +29,12 @@ public class BombController : MonoBehaviour
         }
     }
 
+    public bool IsUsingBomb { get { return mIsUsingBomb; } }
+
     IEnumerator WaitThenDisableTimeStop (float duration)
     {
         yield return new WaitForSeconds(duration);
+        mIsUsingBomb = false;
         GameManager.sSingleton.isTimeStopBomb = false;
         BulletManager.sSingleton.ResetValAfterTimeStop();
     }

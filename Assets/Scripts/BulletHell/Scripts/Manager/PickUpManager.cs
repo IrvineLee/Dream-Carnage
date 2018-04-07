@@ -102,7 +102,7 @@ public class PickUpManager : MonoBehaviour
             }
 
             PickUp.Type currType = PickUp.Type.POWER_UP;
-            if (pickUpName == TagManager.sSingleton.UI_ScoreTag) currType = PickUp.Type.SCORE;
+            if (pickUpName == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag) currType = PickUp.Type.SCORE;
 
             mAllPickUpList.Add(new PickUp(currType, currPickUpList));
         }
@@ -143,19 +143,12 @@ public class PickUpManager : MonoBehaviour
 
     void EnablePickUpMovement(float duration)
     {
-        bool isActive = false;
         for (int i = 0; i < mStoppedEnvObjList.Count; i++)
         {
             Transform currTrans = mStoppedEnvObjList[i];
-            if (currTrans.gameObject.activeSelf)
-            {
-                isActive = true;
-                currTrans.GetComponent<EnvironmentalObject>().EnableSpeed(duration);
-            }
+            if (currTrans.gameObject.activeSelf) currTrans.GetComponent<EnvironmentalObject>().EnableSpeed(duration);
         }
 
-        // If any stopped bullet is not active, wait for the duration and disable time stop.
-//        if (!isActive) StartCoroutine(WaitThenDisableTimeStop(duration));
         mStoppedEnvObjList.Clear();
     }
 

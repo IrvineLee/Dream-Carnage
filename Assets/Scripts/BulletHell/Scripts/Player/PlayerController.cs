@@ -14,6 +14,8 @@ public class PlayerController : MonoBehaviour
     public int bomb = 2;
     public float powerLevel = 0;
     public float maxPowerLevel = 4;
+    public float linkValue = 0;
+    public float linkMultiplier = 0.5f;
 
     static int sCurrPowerUpNum = 0;
     static List<Transform> sPowerUpList;
@@ -140,14 +142,27 @@ public class PlayerController : MonoBehaviour
             if(powerLevel > 0 && !mIsCoroutineList[1]) StartCoroutine(DoFirstThenDelay(1, () => mPlayerBulletControl.SecondaryWeaponShoot(1), secondaryShootDelay));
         }
         // Bomb.
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKeyDown(KeyCode.X) && !mBombController.IsUsingBomb)
         {
-            mBombController.ActivateBomb();
+            if (bomb > 0)
+            {
+                mBombController.ActivateBomb();
+                bomb -= 1;
+                UIManager.sSingleton.UpdateBomb(playerID, bomb);
+            }
         }
     }
 
     public Vector3 PlayerSize { get { return this.mPlayerSize; } }
     public bool IsInvinsible { get { return this.mIsInvinsible; } }
+
+    public void UpdateLinkBar()
+    {
+        // TODO : Value to be changed later.
+        linkValue += 0.01f * linkMultiplier;
+        if (linkValue > 1) linkValue = 1;
+        UIManager.sSingleton.UpdateLinkBar(playerID, linkValue);
+    }
 
     public void GetPowerUp(float val)
     {

@@ -162,9 +162,9 @@ public class BulletManager : MonoBehaviour
             string ownerName = mAllBulletList[i].ownerName;
             List<Individual.TypeOfBullet> typeOfBulletList = mAllBulletList[i].typeOfBulletList;
 
-            if (ownerName == TagManager.sSingleton.player1Bullet) mP1BulletGroupList = typeOfBulletList;
-            else if (ownerName == TagManager.sSingleton.player2Bullet) mP2BulletGroupList = typeOfBulletList;
-            else if (ownerName == TagManager.sSingleton.enemy1Bullet) 
+            if (ownerName == TagManager.sSingleton.player1BulletName) mP1BulletGroupList = typeOfBulletList;
+            else if (ownerName == TagManager.sSingleton.player2BulletName) mP2BulletGroupList = typeOfBulletList;
+            else if (ownerName == TagManager.sSingleton.enemy1BulletName) 
             {
                 AddFromToList(typeOfBulletList, ref mEnemy1BulletGroupList);
                 mAllEnemyBulletList.Add(new Individual("EnemyBullets", typeOfBulletList));

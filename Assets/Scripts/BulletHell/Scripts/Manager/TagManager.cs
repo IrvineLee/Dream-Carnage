@@ -24,22 +24,23 @@ public class TagManager : MonoBehaviour
     public string enemyBulletTag = "EnemyBullet";
     public string attackPatternTag = "AttackPattern";
 
-    // Tags for UI.
-    public string UI_LifePointTag = "LifePoint";
-    public string UI_PowerLevelTag = "PowerLevel";
-    public string UI_BombTag = "Bomb";
-    public string UI_HighScoreTag = "HighScore";
-    public string UI_ScoreTag = "Score";
-
     // Tags for environmental objects.
     public string ENV_OBJ_PowerUpTag = "PowerUp";
     public string ENV_OBJ_ScorePickUpTag = "ScorePickUp";
     public string ENV_OBJ_DamagePlayerTag = "DamagePlayer";
 
-    // Touhou names.
-    public string player1Bullet = "Player1Bullet";
-    public string player2Bullet = "Player2Bullet";
-    public string enemy1Bullet = "Enemy1Bullet";
+    // Name for intial instantiated transform.
+    public string player1BulletName = "Player1Bullet";
+    public string player2BulletName = "Player2Bullet";
+    public string enemy1BulletName = "Enemy1Bullet";
+
+    // Name for UI.
+    public string UI_HighScoreName = "HiScore_Display";
+    public string UI_ScoreName = "Score_Display";
+    public string UI_LifePointName = "Life_Display";
+    public string UI_PowerLevelName = "Power_Display";
+    public string UI_BombName = "Bomb_Display";
+    public string UI_LinkBarName = "LinkBar_Display";
 //    public string hazardRock = "Rock";
 
     // Layers

@@ -32,7 +32,9 @@ public class EnemyBase : MonoBehaviour
     public int currHitPoint = 100;
     public int totalHitPoint = 100;
     public float moveSpeed = 1;
-    public int scoreGetPerBullet = 100;
+
+    public float scoreMultiplier = 1.0f;
+//    public int scoreGetPerBullet = 100;
 
     // Animation that is being used.
     public Animator anim;
@@ -49,6 +51,8 @@ public class EnemyBase : MonoBehaviour
 
     bool mIsChangeColor = false;
 
+    PlayerController mPlayer1Controller, mPlayer2Controller;
+
     void Awake()
     {
         EnemyManager.sSingleton.AddToList(transform);
@@ -57,7 +61,13 @@ public class EnemyBase : MonoBehaviour
     public virtual void Start()
     {
         mPlayer1 = GameManager.sSingleton.player1;
-        if (GameManager.sSingleton.player2 != null) mPlayer2 = GameManager.sSingleton.player2;
+        mPlayer1Controller = mPlayer1.GetComponent<PlayerController>();
+            
+        if (GameManager.sSingleton.player2 != null)
+        {
+            mPlayer2 = GameManager.sSingleton.player2;
+            mPlayer2Controller = mPlayer2.GetComponent<PlayerController>();
+        }
 
         for (int i = 0; i < movementList.Count; i++)
         { movementList[i].currActionNum = i; }
@@ -82,9 +92,17 @@ public class EnemyBase : MonoBehaviour
             GetDamaged(dmg);
 
             int playerNum = 0;
-            if (other.tag == p1Tag) playerNum = 1;
-            else if (other.tag == p2Tag) playerNum = 2;
-            UIManager.sSingleton.UpdateScore(playerNum, scoreGetPerBullet);
+            if (other.tag == p1Tag)
+            {
+                playerNum = 1;
+                mPlayer1Controller.UpdateLinkBar();
+            }
+            else if (other.tag == p2Tag)
+            {
+                playerNum = 2;
+                mPlayer2Controller.UpdateLinkBar();
+            }
+            UIManager.sSingleton.UpdateScore(playerNum, (int)(dmg * scoreMultiplier));
         }
 
         other.gameObject.SetActive(false);
