@@ -91,18 +91,16 @@ public class EnemyBase : MonoBehaviour
             int dmg = other.GetComponent<BulletMove>().GetBulletDamage;
             GetDamaged(dmg);
 
-            int playerNum = 0;
             if (other.tag == p1Tag)
             {
-                playerNum = 1;
                 mPlayer1Controller.UpdateLinkBar();
+                mPlayer1Controller.UpdateScore((int)(dmg * scoreMultiplier));
             }
             else if (other.tag == p2Tag)
             {
-                playerNum = 2;
                 mPlayer2Controller.UpdateLinkBar();
+                mPlayer2Controller.UpdateScore((int)(dmg * scoreMultiplier));
             }
-            UIManager.sSingleton.UpdateScore(playerNum, (int)(dmg * scoreMultiplier));
         }
 
         other.gameObject.SetActive(false);

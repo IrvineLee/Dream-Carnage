@@ -17,7 +17,6 @@ public class UIManager : MonoBehaviour
         public Transform lifePointTrans = null, bombTrans = null;
         public Text powerLevel_UI, highScore_UI, score_UI;
         public Image linkBarImage;
-        public int score;
 
         public PlayerInfo()
         {
@@ -27,7 +26,6 @@ public class UIManager : MonoBehaviour
             highScore_UI = null;
             score_UI = null;
             linkBarImage = null;
-            score = 0;
         }
 
         public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Text powerLevel, Text highScore, Image linkBarImage, Text score)
@@ -38,7 +36,6 @@ public class UIManager : MonoBehaviour
             this.highScore_UI = highScore;
             this.score_UI = score;
             this.linkBarImage = linkBarImage;
-            this.score = 0;
         }
     }
     List<PlayerInfo> playerUIList = new List<PlayerInfo>();
@@ -124,11 +121,10 @@ public class UIManager : MonoBehaviour
         playerUIList[playerNum - 1].powerLevel_UI.text = temp;
     }
 
-    public void UpdateScore(int player, int addPoints)
+    public void UpdateScore(int player, int score)
     {
         PlayerInfo currPlayer = playerUIList[player - 1];
-        currPlayer.score += addPoints;
-        currPlayer.score_UI.text = GetScoreWithZero(currPlayer.score.ToString());
+        currPlayer.score_UI.text = GetScoreWithZero(score.ToString());
     }
 
     public void UpdateBomb(int player, int currBomb)

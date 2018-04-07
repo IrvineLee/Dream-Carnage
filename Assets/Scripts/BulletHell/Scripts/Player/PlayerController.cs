@@ -10,6 +10,7 @@ public class PlayerController : MonoBehaviour
     public float secondaryShootDelay = 0.15f;
     public float moveSpeed = 1.0f;
 
+    public int score = 0;
     public int life = 2;
     public int bomb = 2;
     public float powerLevel = 0;
@@ -155,6 +156,12 @@ public class PlayerController : MonoBehaviour
 
     public Vector3 PlayerSize { get { return this.mPlayerSize; } }
     public bool IsInvinsible { get { return this.mIsInvinsible; } }
+
+    public void UpdateScore(int score)
+    {
+        this.score += score;
+        UIManager.sSingleton.UpdateScore(playerID, this.score);
+    }
 
     public void UpdateLinkBar()
     {
