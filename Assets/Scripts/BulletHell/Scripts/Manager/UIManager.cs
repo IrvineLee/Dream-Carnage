@@ -12,11 +12,17 @@ public class UIManager : MonoBehaviour
     public Transform player2_UI;
     public Transform timerUI;
 
+    public float countUpScoreSpd = 10;
+
     class PlayerInfo
     {
         public Transform lifePointTrans = null, bombTrans = null;
         public Text powerLevel_UI, highScore_UI, score_UI;
         public Image linkBarImage;
+
+        // Used for coroutine count-up animation.
+        public bool isCoroutine = false;
+        public int currScore, toReachScore;
 
         public PlayerInfo()
         {
@@ -136,7 +142,10 @@ public class UIManager : MonoBehaviour
     public void UpdateScore(int player, int score)
     {
         PlayerInfo currPlayer = playerUIList[player - 1];
-        currPlayer.score_UI.text = GetScoreWithZero(score.ToString());
+        currPlayer.toReachScore = score;
+
+        if(!currPlayer.isCoroutine) StartCoroutine(AddScoreSequence(player));
+//        currPlayer.score_UI.text = GetScoreWithZero(score.ToString());
     }
 
     public void UpdateBomb(int player, int currBomb)
@@ -190,5 +199,21 @@ public class UIManager : MonoBehaviour
         { score = "0" + score; }
 
         return score;
+    }
+
+    IEnumerator AddScoreSequence(int player)
+    {
+        PlayerInfo currPlayer = playerUIList[player - 1];
+        currPlayer.isCoroutine = true;
+
+        while (currPlayer.currScore < currPlayer.toReachScore)
+        {
+            currPlayer.currScore += (int)(1 * countUpScoreSpd);
+            if (currPlayer.currScore > currPlayer.toReachScore) currPlayer.currScore = currPlayer.toReachScore;
+
+            currPlayer.score_UI.text = GetScoreWithZero(currPlayer.currScore.ToString());
+            yield return new WaitForEndOfFrame();
+        }
+        currPlayer.isCoroutine = false;
     }
 }
