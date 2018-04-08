@@ -9,6 +9,7 @@ public class PlayerController : MonoBehaviour
     public float primaryShootDelay = 0.05f;
     public float secondaryShootDelay = 0.15f;
     public float moveSpeed = 1.0f;
+    public float respawnXPos = 0.3f;
 
     public int score = 0;
     public int life = 2;
@@ -33,7 +34,7 @@ public class PlayerController : MonoBehaviour
             this.right = 0;
         }
     }
-    Border border = new Border();
+    static Border border = new Border();
 
     Vector3 mPlayerSize, mResetPos;
     float mDefaultMoveSpeed = 0, mDisableCtrlTimer = 0, mInvinsibilityTimer = 0;
@@ -58,7 +59,7 @@ public class PlayerController : MonoBehaviour
         border.top = Camera.main.ViewportToWorldPoint (new Vector3 (0, 1, distance)).y - (mPlayerSize.y/2);
         border.bottom = Camera.main.ViewportToWorldPoint (new Vector3 (0, 0, distance)).y + (mPlayerSize.y/2);
 
-        mResetPos.x = Camera.main.ViewportToWorldPoint (new Vector3 (0.5f, 0, distance)).x;
+        mResetPos.x = Camera.main.ViewportToWorldPoint (new Vector3 (respawnXPos, 0, distance)).x;
         mResetPos.y = Camera.main.ViewportToWorldPoint (new Vector3 (0, 0, distance)).y - (mPlayerSize.y/2);
 
         sPowerUpList = PickUpManager.sSingleton.GetBigPowerUpList;
@@ -113,6 +114,8 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
         if (Input.GetKey(KeyCode.DownArrow)) transform.Translate(Vector3.down * moveSpeed * Time.deltaTime);
         if (Input.GetKey(KeyCode.RightArrow)) transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
+
+//        if(Input.GetKey(KeyCode.Space)) CameraShake.sSingleton.ShakeCamera();
 
         // Prevent player from moving out of screen.
         transform.position = (new Vector3 (

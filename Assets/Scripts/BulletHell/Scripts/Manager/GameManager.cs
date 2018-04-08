@@ -70,7 +70,9 @@ public class GameManager : MonoBehaviour
 
     public int TotalNumOfPlayer()
     {
-        if (player2 != null) return 2;
-        return 1;
+        int total = 0;
+        if (player1 != null) total++;
+        if (player2 != null) total++;
+        return total;
     }
 }

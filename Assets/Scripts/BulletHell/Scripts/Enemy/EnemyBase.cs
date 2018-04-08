@@ -29,6 +29,7 @@ public class EnemyBase : MonoBehaviour
     }
 
     // Status.
+    public bool isBoss = false;
     public int currHitPoint = 100;
     public int totalHitPoint = 100;
     public float moveSpeed = 1;
@@ -145,6 +146,8 @@ public class EnemyBase : MonoBehaviour
         currHitPoint -= damagedValue;
         if (currHitPoint <= 0)
         {
+            if (isBoss) CameraShake.sSingleton.ShakeCamera();
+
             // TODO: Enemy destroyed animation..
             Destroy(gameObject);
             PickUpManager.sSingleton.TransformBulletsIntoPoints(mTypeOfBulletList);
