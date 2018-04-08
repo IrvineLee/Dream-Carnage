@@ -132,6 +132,14 @@ public class PlayerController : MonoBehaviour
             moveSpeed = mDefaultMoveSpeed;
             mIsSpeedSlow = false;
         }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            bool isPauseMenu = UIManager.sSingleton.IsPauseMenu;
+
+            if (!isPauseMenu) UIManager.sSingleton.EnablePauseScreen(playerID);
+            else UIManager.sSingleton.DisablePauseScreen();
+        }
     }
 
     void HandleAttack()

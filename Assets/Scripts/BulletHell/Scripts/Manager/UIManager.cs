@@ -13,10 +13,11 @@ public class UIManager : MonoBehaviour
     public Transform timerUI;
 
     public float countUpScoreSpd = 10;
+    public int maxPauseButton = 3;
 
     class PlayerInfo
     {
-        public Transform lifePointTrans = null, bombTrans = null;
+        public Transform lifePointTrans, bombTrans, pauseTrans;
         public Text powerLevel_UI, highScore_UI, score_UI;
         public Image linkBarImage;
 
@@ -28,16 +29,18 @@ public class UIManager : MonoBehaviour
         {
             lifePointTrans = null;
             bombTrans = null;
+            pauseTrans = null;
             powerLevel_UI = null;
             highScore_UI = null;
             score_UI = null;
             linkBarImage = null;
         }
 
-        public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Text powerLevel, Text highScore, Image linkBarImage, Text score)
+        public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Transform pauseTrans, Text powerLevel, Text highScore, Image linkBarImage, Text score)
         {
             this.lifePointTrans = lifePointTrans;
             this.bombTrans = bombTrans;
+            this.pauseTrans = pauseTrans;
             this.powerLevel_UI = powerLevel;
             this.highScore_UI = highScore;
             this.score_UI = score;
@@ -49,6 +52,9 @@ public class UIManager : MonoBehaviour
     Transform mMaxTrans;
     Text mSecondText, mMilliSecondText;
     float mDuration = 0;
+
+    int mCurrPlayerNum = 0, mPauseSelectIndex = 0;
+    bool mIsPauseMenu = false;
 
     void Awake()
     {
@@ -87,37 +93,55 @@ public class UIManager : MonoBehaviour
             if (mDuration < 0) mDuration = 0;
             UpdateBossTimer(mDuration);
         }
-    }
 
-    void InitializeUI(Transform playerUI, int index)
-    {
-        for (int i = 0; i < playerUI.childCount; i++)
+        if (mIsPauseMenu)
         {
-            Transform currChild = player1_UI.GetChild(i);
-            if (currChild.name == TagManager.sSingleton.UI_HighScoreName) playerUIList[index].highScore_UI = currChild.GetComponent<Text>();
-            else if (currChild.name == TagManager.sSingleton.UI_ScoreName) playerUIList[index].score_UI = currChild.GetComponent<Text>();
-            else if (currChild.name == TagManager.sSingleton.UI_LifePointName) playerUIList[index].lifePointTrans = currChild;
-            else if (currChild.name == TagManager.sSingleton.UI_BombName) playerUIList[index].bombTrans = currChild;
-            else if (currChild.name == TagManager.sSingleton.UI_PowerLevelName) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
-            else if (currChild.name == TagManager.sSingleton.UI_LinkBarName) 
+            Transform pauseTrans = playerUIList[mCurrPlayerNum].pauseTrans;
+            if (Input.GetKeyDown(KeyCode.UpArrow) && mPauseSelectIndex > 0)
             {
-                for (int j = 0; j < currChild.childCount; j++)
-                {
-                    Transform currGrandChild = currChild.GetChild(j);
+                mPauseSelectIndex--;
+                pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = Color.red;
+                pauseTrans.GetChild(mPauseSelectIndex + 1).GetComponent<Image>().color = Color.white;
+            }
+            else if (Input.GetKeyDown(KeyCode.DownArrow) && mPauseSelectIndex < maxPauseButton - 1)
+            {
+                mPauseSelectIndex++;
+                pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = Color.red;
+                pauseTrans.GetChild(mPauseSelectIndex - 1).GetComponent<Image>().color = Color.white;
+            }
 
-                    if (currGrandChild.name == TagManager.sSingleton.UI_LinkBarInsideName)
-                        playerUIList[index].linkBarImage = currGrandChild.GetComponent<Image>();
-                    else if (currGrandChild.name == TagManager.sSingleton.UI_LinkMaxName)
-                        mMaxTrans = currGrandChild;
-                }
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                if (mPauseSelectIndex == 0) DisablePauseScreen();
+                else if (mPauseSelectIndex == 1) RestartLevel();
+                else if (mPauseSelectIndex == 2) ReturnToTitleScreen();
             }
         }
+    }
 
-        for (int i = 0; i < GameManager.sSingleton.plyStartLife; i++)
-        { playerUIList[index].lifePointTrans.GetChild(i).gameObject.SetActive(true); }
+    public bool IsPauseMenu{ get { return mIsPauseMenu; } }
 
-        for (int i = 0; i < GameManager.sSingleton.plyStartBomb; i++)
-        { playerUIList[index].bombTrans.GetChild(i).gameObject.SetActive(true); }
+    public void EnablePauseScreen(int playerNum)
+    {
+        mIsPauseMenu = true;
+        Time.timeScale = 0;
+        mCurrPlayerNum = playerNum - 1;
+
+        Transform pauseTrans = playerUIList[mCurrPlayerNum].pauseTrans;
+        pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = Color.red;
+        pauseTrans.gameObject.SetActive(true);
+    }
+
+    public void DisablePauseScreen()
+    {
+        Transform pauseTrans = playerUIList[mCurrPlayerNum].pauseTrans;
+        pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = Color.white;
+        pauseTrans.gameObject.SetActive(false);
+
+        mCurrPlayerNum = 0;
+        mPauseSelectIndex = 0;
+        Time.timeScale = 1;
+        mIsPauseMenu = false;
     }
 
     public void UpdateLife(int playerNum, int currLife)
@@ -174,6 +198,38 @@ public class UIManager : MonoBehaviour
         UpdateBossTimer(mDuration);
     }
 
+    void InitializeUI(Transform playerUI, int index)
+    {
+        for (int i = 0; i < playerUI.childCount; i++)
+        {
+            Transform currChild = playerUI.GetChild(i);
+            if (currChild.name == TagManager.sSingleton.UI_HighScoreName) playerUIList[index].highScore_UI = currChild.GetComponent<Text>();
+            else if (currChild.name == TagManager.sSingleton.UI_ScoreName) playerUIList[index].score_UI = currChild.GetComponent<Text>();
+            else if (currChild.name == TagManager.sSingleton.UI_LifePointName) playerUIList[index].lifePointTrans = currChild;
+            else if (currChild.name == TagManager.sSingleton.UI_BombName) playerUIList[index].bombTrans = currChild;
+            else if (currChild.name == TagManager.sSingleton.UI_PowerLevelName) playerUIList[index].powerLevel_UI = currChild.GetComponent<Text>();
+            else if (currChild.name == TagManager.sSingleton.UI_LinkBarName) 
+            {
+                for (int j = 0; j < currChild.childCount; j++)
+                {
+                    Transform currGrandChild = currChild.GetChild(j);
+
+                    if (currGrandChild.name == TagManager.sSingleton.UI_LinkBarInsideName)
+                        playerUIList[index].linkBarImage = currGrandChild.GetComponent<Image>();
+                    else if (currGrandChild.name == TagManager.sSingleton.UI_LinkMaxName)
+                        mMaxTrans = currGrandChild;
+                }
+            }
+            else if (currChild.name == TagManager.sSingleton.UI_PauseMenuName) playerUIList[index].pauseTrans = currChild;
+        }
+
+        for (int i = 0; i < GameManager.sSingleton.plyStartLife; i++)
+        { playerUIList[index].lifePointTrans.GetChild(i).gameObject.SetActive(true); }
+
+        for (int i = 0; i < GameManager.sSingleton.plyStartBomb; i++)
+        { playerUIList[index].bombTrans.GetChild(i).gameObject.SetActive(true); }
+    }
+
     void UpdateBossTimer(float duration)
     {
         float seconds = (int)duration;
@@ -189,6 +245,16 @@ public class UIManager : MonoBehaviour
         mMilliSecondText.text = milliSecStr;
 
         if(duration == 0) timerUI.gameObject.SetActive(false);
+    }
+
+    void RestartLevel()
+    {
+
+    }
+
+    void ReturnToTitleScreen()
+    {
+
     }
 
     string GetScoreWithZero(string score)
@@ -208,11 +274,15 @@ public class UIManager : MonoBehaviour
 
         while (currPlayer.currScore < currPlayer.toReachScore)
         {
-            currPlayer.currScore += (int)(1 * countUpScoreSpd);
-            if (currPlayer.currScore > currPlayer.toReachScore) currPlayer.currScore = currPlayer.toReachScore;
+            if (!mIsPauseMenu)
+            {
+                currPlayer.currScore += (int)(1 * countUpScoreSpd);
+                if (currPlayer.currScore > currPlayer.toReachScore) currPlayer.currScore = currPlayer.toReachScore;
 
-            currPlayer.score_UI.text = GetScoreWithZero(currPlayer.currScore.ToString());
-            yield return new WaitForEndOfFrame();
+                currPlayer.score_UI.text = GetScoreWithZero(currPlayer.currScore.ToString());
+                yield return new WaitForEndOfFrame();
+            }
+            else yield return null;
         }
         currPlayer.isCoroutine = false;
     }

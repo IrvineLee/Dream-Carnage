@@ -54,7 +54,7 @@ public class GameManager : MonoBehaviour
         BulletManager bulletMgr = BulletManager.sSingleton;
 
         // Player 1 and 2 bullet instantiate.
-        bulletMgr.InstantiateAndCacheBullet(player1, p1BulletsTotal);
+        if (player1 != null) bulletMgr.InstantiateAndCacheBullet(player1, p1BulletsTotal);
         if (player2 != null) bulletMgr.InstantiateAndCacheBullet(player2, p2BulletsTotal);
 
         // Enemy bullet instantiate.

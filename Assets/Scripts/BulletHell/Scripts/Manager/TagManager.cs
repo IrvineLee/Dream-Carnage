@@ -43,6 +43,7 @@ public class TagManager : MonoBehaviour
     public string UI_LinkBarName = "LinkBar_Display";
     public string UI_LinkBarInsideName = "LinkBarInside";
     public string UI_LinkMaxName = "Max";
+    public string UI_PauseMenuName = "PauseMenu";
 
 //    public string hazardRock = "Rock";
 
