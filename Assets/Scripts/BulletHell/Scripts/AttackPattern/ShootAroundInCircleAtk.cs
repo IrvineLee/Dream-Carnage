@@ -41,45 +41,48 @@ public class ShootAroundInCircleAtk : AttackPattern
                 onceStartDelay = 0;
             }
 
-            mIncreaseTRTimer += Time.deltaTime;
-            if (turningRate < maxTR && mIncreaseTRTimer >= increaseTRTime)
+            if (!BulletManager.sSingleton.IsDisableSpawnBullet)
             {
-                turningRate += increaseTR;
-                if (turningRate > maxTR) turningRate = maxTR;
-                mIncreaseTRTimer = 0;
-            }
-
-            for (int i = 0; i < segments; i++)
-            {
-                float x = Mathf.Sin (mAngle + (xOffset * Mathf.Deg2Rad)) * distance;
-                float y = Mathf.Cos (mAngle + (yOffset * Mathf.Deg2Rad)) * distance;
-                mAngle += (Mathf.PI * 2 / segments);
-
-                Vector2 dir = Vector2.zero;
-                if (clockwise) { dir.x += x;  dir.y += y; }
-                else { dir.x += y; dir.y += x; }
-
-                Transform currBullet = getBulletTrans();
-                currBullet.position = mOwner.position;
-                currBullet.gameObject.SetActive(true);
-
-                BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
-                BulletManager.Bullet.State state = BulletManager.Bullet.State.ONE_DIRECTION;
-
-                if (mRotateAround != null)
+                mIncreaseTRTimer += Time.deltaTime;
+                if (turningRate < maxTR && mIncreaseTRTimer >= increaseTRTime)
                 {
-                    bulletMove.AddRotateAround(mRotateAround);
-                    state = BulletManager.Bullet.State.STYLE_ATK_1;
+                    turningRate += increaseTR;
+                    if (turningRate > maxTR) turningRate = maxTR;
+                    mIncreaseTRTimer = 0;
                 }
 
-                bulletMove.SetBulletValues(state, dir, bulletSpeed);
-                bulletMove.SetChangedBulletSpeed(slowDownList);
+                for (int i = 0; i < segments; i++)
+                {
+                    float x = Mathf.Sin (mAngle + (xOffset * Mathf.Deg2Rad)) * distance;
+                    float y = Mathf.Cos (mAngle + (yOffset * Mathf.Deg2Rad)) * distance;
+                    mAngle += (Mathf.PI * 2 / segments);
+
+                    Vector2 dir = Vector2.zero;
+                    if (clockwise) { dir.x += x;  dir.y += y; }
+                    else { dir.x += y; dir.y += x; }
+
+                    Transform currBullet = getBulletTrans();
+                    currBullet.position = mOwner.position;
+                    currBullet.gameObject.SetActive(true);
+
+                    BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
+                    BulletManager.Bullet.State state = BulletManager.Bullet.State.ONE_DIRECTION;
+
+                    if (mRotateAround != null)
+                    {
+                        bulletMove.AddRotateAround(mRotateAround);
+                        state = BulletManager.Bullet.State.STYLE_ATK_1;
+                    }
+
+                    bulletMove.SetBulletValues(state, dir, bulletSpeed);
+                    bulletMove.SetChangedBulletSpeed(slowDownList);
+                }
+
+                mAngle += (turningRate * Mathf.Deg2Rad);
+
+                mTimer += shootDelay + Time.deltaTime;
+                yield return new WaitForSeconds(shootDelay);
             }
-
-            mAngle += (turningRate * Mathf.Deg2Rad);
-
-            mTimer += shootDelay + Time.deltaTime;
-            yield return new WaitForSeconds(shootDelay);
         }
         doLast();
         mIsCoroutine = false;

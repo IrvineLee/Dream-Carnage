@@ -34,7 +34,6 @@ public class SineWaveAtk : AttackPattern
         mIsCoroutine = true;
 
         float timer = 0;
-        bool isSpawnBullet = true;
 
         while (mTimer < duration)
         {
@@ -61,9 +60,7 @@ public class SineWaveAtk : AttackPattern
 
             for (int i = 0; i < sineWaveBullets; i++)
             {
-                if (BulletManager.sSingleton.IsDisableSpawnBullet) isSpawnBullet = false;
-
-                if (isSpawnBullet)
+                if (!BulletManager.sSingleton.IsDisableSpawnBullet && !GameManager.sSingleton.isTimeStopBomb)
                 {
                     Transform currBullet = getBulletTrans();
 
@@ -83,7 +80,6 @@ public class SineWaveAtk : AttackPattern
                 yield return new WaitForSeconds(shootDelay);
             }
             yield return new WaitForSeconds(cooldown);
-            isSpawnBullet = true;
 
             timer += cooldown + Time.deltaTime;
             mTimer = timer;

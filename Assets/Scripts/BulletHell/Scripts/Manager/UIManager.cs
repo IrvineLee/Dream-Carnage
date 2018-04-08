@@ -18,7 +18,7 @@ public class UIManager : MonoBehaviour
     class PlayerInfo
     {
         public Transform lifePointTrans, bombTrans, pauseTrans;
-        public Text powerLevel_UI, highScore_UI, score_UI;
+        public Text powerLevel_UI, highScore_UI, score_UI, percent_UI;
         public Image linkBarImage;
 
         // Used for coroutine count-up animation.
@@ -33,10 +33,12 @@ public class UIManager : MonoBehaviour
             powerLevel_UI = null;
             highScore_UI = null;
             score_UI = null;
+            percent_UI = null;
             linkBarImage = null;
         }
 
-        public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Transform pauseTrans, Text powerLevel, Text highScore, Image linkBarImage, Text score)
+        public PlayerInfo(Transform lifePointTrans, Transform bombTrans, Transform pauseTrans, Text powerLevel, Text highScore, Text score, 
+            Image linkBarImage, Text percent_UI)
         {
             this.lifePointTrans = lifePointTrans;
             this.bombTrans = bombTrans;
@@ -45,11 +47,11 @@ public class UIManager : MonoBehaviour
             this.highScore_UI = highScore;
             this.score_UI = score;
             this.linkBarImage = linkBarImage;
+            this.percent_UI = percent_UI;
         }
     }
     List<PlayerInfo> playerUIList = new List<PlayerInfo>();
 
-    Transform mMaxTrans;
     Text mSecondText, mMilliSecondText;
     float mDuration = 0;
 
@@ -187,8 +189,20 @@ public class UIManager : MonoBehaviour
 
     public void UpdateLinkBar(int player, float linkVal)
     {
-        playerUIList[player - 1].linkBarImage.fillAmount = linkVal;
-        if (linkVal >= 1) mMaxTrans.gameObject.SetActive(true);
+        PlayerInfo currPlayerInfo = playerUIList[player - 1];
+        currPlayerInfo.linkBarImage.fillAmount = linkVal;
+
+        if (linkVal >= 1) currPlayerInfo.percent_UI.text = "MAX";
+        else
+        {
+            Text percent_UI = currPlayerInfo.percent_UI;
+            string valStr = (linkVal / 1 * 100).ToString("F1");
+
+            percent_UI.text = valStr + "%";
+
+            int valInt = (int)float.Parse(valStr);
+            if (valInt == 100) percent_UI.text = "99.9%";
+        }
     }
 
     public void ActivateBossTimer(float duration)
@@ -217,7 +231,7 @@ public class UIManager : MonoBehaviour
                     if (currGrandChild.name == TagManager.sSingleton.UI_LinkBarInsideName)
                         playerUIList[index].linkBarImage = currGrandChild.GetComponent<Image>();
                     else if (currGrandChild.name == TagManager.sSingleton.UI_LinkMaxName)
-                        mMaxTrans = currGrandChild;
+                        playerUIList[index].percent_UI = currGrandChild.GetComponent<Text>();
                 }
             }
             else if (currChild.name == TagManager.sSingleton.UI_PauseMenuName) playerUIList[index].pauseTrans = currChild;

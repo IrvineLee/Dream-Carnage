@@ -11,7 +11,7 @@ public class BulletMove : MonoBehaviour
     float mAngle = 0;
 
     int mCurrChangeIndex = 0;
-    float mChangeSpeedTimer = 0, mSavedSpeed = 0;
+    float mChangeSpeedTimer = 0, mSavedSpeed = 0, mAngleSpeed = 1;
     List<BulletManager.ChangeBulletProp> newChangeList = new List<BulletManager.ChangeBulletProp>();
 
     RotateAround mRotateAround;
@@ -36,9 +36,9 @@ public class BulletMove : MonoBehaviour
         else if (currState == BulletManager.Bullet.State.SINE_WAVE)
         {
             mCurrPos += bullet.direction * bullet.speed * Time.deltaTime;
-            transform.position = (new Vector3(mCurrPos.x, mCurrPos.y, 0) + mCurveAxis * Mathf.Sin (mAngle * bullet.frequency) * (bullet.magnitude + (mAngle * bullet.magnitudeExpandMult)));
+            transform.position = (Vector3)mCurrPos + mCurveAxis * Mathf.Sin (mAngle * bullet.frequency) * (bullet.magnitude + (mAngle * bullet.magnitudeExpandMult));
 
-            mAngle+= Time.deltaTime;
+            mAngle += Time.deltaTime * mAngleSpeed;
             if (mAngle >= (Mathf.PI * 2)) mAngle = 0;
         }
         else if (currState == BulletManager.Bullet.State.STYLE_ATK_1)
@@ -122,6 +122,7 @@ public class BulletMove : MonoBehaviour
     {
         mSavedSpeed = bullet.speed;
         bullet.speed = 0;
+        mAngleSpeed = 0;
     }
 
     public void SetChangedBulletSpeed(List<BulletManager.ChangeBulletProp> newList) { this.newChangeList = newList; }
@@ -141,9 +142,14 @@ public class BulletMove : MonoBehaviour
         while(currTime < duration)
         {
             bullet.speed = currTime / duration * defaultSpeed; 
+            mAngleSpeed = currTime / duration; 
 
             currTime += Time.deltaTime;
-            if (currTime >= duration) bullet.speed = defaultSpeed;
+            if (currTime >= duration)
+            {
+                bullet.speed = defaultSpeed;
+                mAngleSpeed = 1;
+            }
 
             yield return null;
         }
