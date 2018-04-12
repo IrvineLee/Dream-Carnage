@@ -37,11 +37,14 @@ public class SineWaveAtk : AttackPattern
 
         while (mTimer < duration)
         {
-            if (onceStartDelay != 0)
+            while (onceStartDelay > 0)
             {
-                timer += onceStartDelay;
-                yield return new WaitForSeconds(onceStartDelay);
-                onceStartDelay = 0;
+                if (!GameManager.sSingleton.isTimeStopBomb)
+                {
+                    mTimer += Time.deltaTime;
+                    onceStartDelay -= Time.deltaTime;
+                }
+                yield return null;
             }
 
             Vector2 dir = (Vector2) (target.position - mOwner.transform.position).normalized;
@@ -60,7 +63,7 @@ public class SineWaveAtk : AttackPattern
 
             for (int i = 0; i < sineWaveBullets; i++)
             {
-                if (!BulletManager.sSingleton.IsDisableSpawnBullet && !GameManager.sSingleton.isTimeStopBomb)
+                if (!BulletManager.sSingleton.IsDisableSpawnBullet)
                 {
                     Transform currBullet = getBulletTrans();
 

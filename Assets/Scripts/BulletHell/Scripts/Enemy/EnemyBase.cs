@@ -6,26 +6,35 @@ using System;
 public class EnemyBase : MonoBehaviour 
 {
     [System.Serializable]
+    public class MoveInfo
+    {
+        [ReadOnly] public Vector3 target;
+        [ReadOnly] public Vector3 moveDirection;
+        [ReadOnly] public Vector3 velocity;
+        [ReadOnly] public int currWayPoint;
+    }
+
+    [System.Serializable]
     public class Movement
     {
         [System.Serializable]
-        public class ToPos
+        public class WayPoint
         {
-            public Vector2 targetPos;
-            public float timeTaken;
+            public Transform targetTrans;
+            public float speed;
             public float startDelay;
 
-            public ToPos(Vector2 targetPos, float timeTaken, float startDelay)
+            public WayPoint()
             {
-                this.targetPos = targetPos;
-                this.timeTaken = timeTaken;
-                this.startDelay = startDelay;
+                this.targetTrans = null;
+                this.speed = 1;
+                this.startDelay = 0;
             }
         }
 
-        [HideInInspector] public int currActionNum;
+        public List<WayPoint> wayPointList = new List<WayPoint>();
+        public bool isRepeat = false;
         [HideInInspector] public bool isCoroutine;
-        public List<ToPos> targetPosList = new List<ToPos>();
     }
 
     // Status.
@@ -39,17 +48,22 @@ public class EnemyBase : MonoBehaviour
 
     // Animation that is being used.
     public Animator anim;
+
+    [ReadOnly] public int currActionNum = 0;
     public List<AttackPattern> attackPatternList = new List<AttackPattern>();
+
+    // Enemy movement.
+    public MoveInfo moveInfo;
     public List<Movement> movementList = new List<Movement>();
 
     protected Transform mPlayer1, mPlayer2;
     protected List<BulletManager.Individual.TypeOfBullet> mTypeOfBulletList;
     protected MagicCirlce mMagicCircle;
 
-    protected int mCurrActionNum = 0;
     protected List<List<Action>> mListOfActionList = new List<List<Action>>();
     protected bool mIsStopTime = false;
 
+    Rigidbody2D rgBody;
     bool mIsChangeColor = false;
 
     PlayerController mPlayer1Controller, mPlayer2Controller;
@@ -70,9 +84,7 @@ public class EnemyBase : MonoBehaviour
             mPlayer2Controller = mPlayer2.GetComponent<PlayerController>();
         }
 
-        for (int i = 0; i < movementList.Count; i++)
-        { movementList[i].currActionNum = i; }
-
+        rgBody = GetComponent<Rigidbody2D>();
         mMagicCircle = gameObject.GetComponentInChildren<MagicCirlce>();
     }
 
@@ -107,32 +119,47 @@ public class EnemyBase : MonoBehaviour
         other.gameObject.SetActive(false);
     }
 
-    public IEnumerator MoveToPos(Movement currMovement, Action doLast)
+    public IEnumerator MoveToWayPoint()
     {
-        currMovement.isCoroutine = true;
-        for (int i = 0; i < currMovement.targetPosList.Count; i++)
+        int savedActionNum = currActionNum;
+        movementList[savedActionNum].isCoroutine = true;
+        moveInfo.currWayPoint = 0;
+
+        while(savedActionNum == currActionNum)
         {
-            EnemyBase.Movement.ToPos currToPos = currMovement.targetPosList[i];
-            Vector2 pos = currToPos.targetPos;
-            float timeTaken = currToPos.timeTaken;
-            float delay = currToPos.startDelay;
+            Movement currMoveThisAct = movementList[savedActionNum];
 
-            yield return new WaitForSeconds(delay);
-
-            Vector3 defaultPos = transform.position;
-            float timeStartLerp = Time.time;
-
-            while((Vector2)transform.position != pos)
+            int currWayIndex = moveInfo.currWayPoint;
+            if (currWayIndex < currMoveThisAct.wayPointList.Count)
             {
-                float timeSinceStarted = Time.time - timeStartLerp;
-                float percentageComplete = timeSinceStarted / timeTaken;
+                Movement.WayPoint currWayPoint = currMoveThisAct.wayPointList[currWayIndex];
+                yield return new WaitForSeconds(currWayPoint.startDelay);
 
-                transform.position = Vector3.Lerp(defaultPos, pos, percentageComplete);
-                yield return null;
+                moveInfo.target = currWayPoint.targetTrans.position;
+                moveInfo.moveDirection = moveInfo.target - transform.position;
+                moveInfo.velocity = rgBody.velocity;
+
+                if (moveInfo.moveDirection.magnitude < 0.5f) moveInfo.currWayPoint++;
+                else moveInfo.velocity = moveInfo.moveDirection.normalized * currWayPoint.speed;
             }
+            else
+            {
+                if (currMoveThisAct.isRepeat) moveInfo.currWayPoint = 0;
+                else moveInfo.velocity = Vector3.zero;
+            }
+            rgBody.velocity = moveInfo.velocity;
+
+            yield return null;
         }
-        doLast();
-        currMovement.isCoroutine = false;
+        rgBody.velocity = Vector3.zero;  
+        movementList[savedActionNum].isCoroutine = false;
+    }
+
+    protected void StopCurrMovement(IEnumerator co) 
+    { 
+        if (co == null) return;
+        StopCoroutine(co);
+        rgBody.velocity = Vector3.zero;
     }
 
     public bool IsStopTime

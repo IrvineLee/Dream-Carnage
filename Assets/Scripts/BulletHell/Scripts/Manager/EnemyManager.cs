@@ -15,24 +15,6 @@ public class EnemyManager : MonoBehaviour
         else _sSingleton = this;
     }
 
-    public void EnableAllEnemy()
-    {
-        for (int i = 0; i < EnemyList.Count; i++)
-        {
-            EnemyBase currEnemy = EnemyList[i].GetComponent<EnemyBase>();
-            currEnemy.IsStopTime = false;
-        }
-    }
-
-    public void StopAllEnemy()
-    {
-        for (int i = 0; i < EnemyList.Count; i++)
-        {
-            EnemyBase currEnemy = EnemyList[i].GetComponent<EnemyBase>();
-            currEnemy.IsStopTime = true;
-        }
-    }
-
     public void AddToList(Transform trans)
     {
         EnemyList.Add(trans);

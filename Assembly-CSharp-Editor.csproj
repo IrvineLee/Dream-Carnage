@@ -46,9 +46,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\Drawer\HideInSubClassAttributeDrawer.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\Drawer\ReadOnlyAttributeDrawer.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\Enemy1CI.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\EnemyBulletControlCI.cs" />
-     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\HideInSubClassAttributeDrawer.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\PlayerBulletControlCI.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\ShootAroundInCircleAtkCI.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\ShootAtkCI.cs" />

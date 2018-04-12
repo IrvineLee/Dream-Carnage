@@ -18,6 +18,7 @@ public class AttackPattern : MonoBehaviour
 
     protected Transform mOwner;
     protected float mTimer = 0.0f;
+    protected float mSavedStartDelay;
     protected bool mIsDelay = false;
     protected bool mIsCoroutine = false;
 

@@ -32,13 +32,17 @@ public class ShootAroundInCircleAtk : AttackPattern
     public IEnumerator ShootAroundInCirclesRoutine(Func<Transform> getBulletTrans, Action doLast)
     {
         mIsCoroutine = true;
+
         while (mTimer < duration)
         {
-            if (onceStartDelay != 0)
+            while (onceStartDelay > 0)
             {
-                mTimer += onceStartDelay;
-                yield return new WaitForSeconds(onceStartDelay);
-                onceStartDelay = 0;
+                if (!GameManager.sSingleton.isTimeStopBomb)
+                {
+                    mTimer += Time.deltaTime;
+                    onceStartDelay -= Time.deltaTime;
+                }
+                yield return null;
             }
 
             if (!BulletManager.sSingleton.IsDisableSpawnBullet)
@@ -83,6 +87,7 @@ public class ShootAroundInCircleAtk : AttackPattern
                 mTimer += shootDelay + Time.deltaTime;
                 yield return new WaitForSeconds(shootDelay);
             }
+            else yield return null;
         }
         doLast();
         mIsCoroutine = false;

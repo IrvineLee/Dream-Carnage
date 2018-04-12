@@ -111,7 +111,6 @@ public class BulletManager : MonoBehaviour
 
     bool mIsDisableSpawnBullet = false;
     float mDisableSpawnBulletTimer = 0, mDisableSpawnBulletTime = 0;
-    float mReturnDefaultSpdDur = 0;
 
     List<Individual.TypeOfBullet> mP1BulletGroupList = new List<Individual.TypeOfBullet>();
     List<Individual.TypeOfBullet> mP2BulletGroupList = new List<Individual.TypeOfBullet>();
@@ -119,9 +118,6 @@ public class BulletManager : MonoBehaviour
 
     List<Individual> mAllBulletList = new List<Individual>();
     List<Individual> mAllEnemyBulletList = new List<Individual>();
-
-    // When player activated time stop bomb.
-    List<Transform> mStoppedEnemyBulletsList = new List<Transform>();
 
     void Awake()
     {
@@ -144,13 +140,6 @@ public class BulletManager : MonoBehaviour
             {
                 mDisableSpawnBulletTimer = 0;
                 mIsDisableSpawnBullet = false;
-
-                if (GameManager.sSingleton.isTimeStopBomb)
-                {
-                    mIsDisableSpawnBullet = true;
-                    EnableEnemyBulletMovement(mReturnDefaultSpdDur);
-                    EnemyManager.sSingleton.EnableAllEnemy();
-                }
             }
         }
     }
@@ -275,52 +264,6 @@ public class BulletManager : MonoBehaviour
         mDisableSpawnBulletTime = GameManager.sSingleton.enemyDisBulletTime;
     }
 
-    public void TimeStopEffect(float stopDuration, float returnDefaultSpdDur)
-    {
-        DisableEnemyBulletMovement(stopDuration);
-        mReturnDefaultSpdDur = returnDefaultSpdDur;
-    }
-
-    void EnableEnemyBulletMovement(float duration)
-    {
-        for (int i = 0; i < mStoppedEnemyBulletsList.Count; i++)
-        {
-            Transform currBullet = mStoppedEnemyBulletsList[i];
-            if (currBullet.gameObject.activeSelf) currBullet.GetComponent<BulletMove>().EnableSpeed(duration);
-        }
-        mStoppedEnemyBulletsList.Clear();
-    }
-
-    void DisableEnemyBulletMovement(float duration)
-    {
-        // Loop through all enemies.
-        for (int i = 0; i < mAllEnemyBulletList.Count; i++)
-        {
-            Individual currEnemy = mAllEnemyBulletList[i];
-
-            // Loop through all type of bullets of current enemy.
-            for (int j = 0; j < currEnemy.typeOfBulletList.Count; j++)
-            {
-                Individual.TypeOfBullet currBulletType = currEnemy.typeOfBulletList[j];
-
-                // Loop through all the same bullet type.
-                for (int k = 0; k < currBulletType.bulletTransList.Count; k++)
-                {
-                    Transform currBullet = currBulletType.bulletTransList[k];
-
-                    if (currBullet.gameObject.activeSelf)
-                    {
-                        currBullet.gameObject.GetComponent<BulletMove>().DisableSpeed();
-                        mStoppedEnemyBulletsList.Add(currBullet);
-                    }
-                }
-            }
-        }
-
-        mIsDisableSpawnBullet = true;
-        mDisableSpawnBulletTime = duration;
-    }
-
     public void ResetValAfterTimeStop()
     {
         mIsDisableSpawnBullet = false;
@@ -333,7 +276,7 @@ public class BulletManager : MonoBehaviour
         while(sr.color.a > 0)
         {
             color = sr.color;
-            color.a -= Time.deltaTime * GameManager.sSingleton.bulletDisappearSpeed;
+            color.a -= Time.unscaledDeltaTime * GameManager.sSingleton.bulletDisappearSpeed;
             sr.color = color;
 
             yield return null;

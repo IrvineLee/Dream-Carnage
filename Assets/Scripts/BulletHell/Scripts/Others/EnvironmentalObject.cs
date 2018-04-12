@@ -47,7 +47,7 @@ public class EnvironmentalObject : MonoBehaviour
         }
         else if (state == State.MOVE_TOWARDS_PLAYER)
         {
-            float step = speedToPlayer * Time.deltaTime;
+            float step = speedToPlayer * Time.unscaledDeltaTime;
             transform.position = Vector3.MoveTowards(transform.position, mPlayerHitBox.position, step);
         }
 	}
@@ -58,31 +58,5 @@ public class EnvironmentalObject : MonoBehaviour
 
         state = State.MOVE_TOWARDS_PLAYER;
         mPlayerHitBox = playerHitBox; 
-    }
-
-    // Duration it takes for the bullet to return to default speed.
-    public void EnableSpeed(float duration)
-    {
-        StartCoroutine(ReturnDefaultSpeedSequence(duration, mSavedSpeed));
-    }
-
-    public void DisableSpeed()
-    {
-        mSavedSpeed = speed;
-        speed = 0;
-    }
-
-    IEnumerator ReturnDefaultSpeedSequence (float duration, float defaultSpeed)
-    {
-        float currTime = 0;
-
-        while(currTime < duration)
-        {
-            speed = currTime / duration * defaultSpeed; 
-
-            currTime += Time.deltaTime;
-            if (currTime >= duration) speed = defaultSpeed;
-            yield return null;
-        }
     }
 }

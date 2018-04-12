@@ -14,7 +14,14 @@ public class BombController : MonoBehaviour
     public float duration = 3.0f;
     public float returnDefaultSpdDur = 1.0f;
 
+    float mTimeScale = 0.05f;
+    float mFixedDeltaTime = 0.0001f, mSavedFixedDT;
     bool mIsUsingBomb = false;
+
+    void Start()
+    {
+        mSavedFixedDT = Time.fixedDeltaTime;
+    }
 
     public void ActivateBomb()
     {
@@ -22,23 +29,34 @@ public class BombController : MonoBehaviour
         {
             mIsUsingBomb = true;
             GameManager.sSingleton.isTimeStopBomb = true;
-            EnemyManager.sSingleton.StopAllEnemy();
 
-            BulletManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
-            PickUpManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
-            HazardManager.sSingleton.TimeStopEffect(duration, returnDefaultSpdDur);
-
-            StartCoroutine(WaitThenDisableTimeStop(duration + returnDefaultSpdDur));
+            Time.timeScale = mTimeScale;
+            Time.fixedDeltaTime = mFixedDeltaTime;
+            StartCoroutine(TimeStopSequence(duration, returnDefaultSpdDur));
         }
     }
 
     public bool IsUsingBomb { get { return mIsUsingBomb; } }
 
-    IEnumerator WaitThenDisableTimeStop (float duration)
+    IEnumerator TimeStopSequence (float stopDur, float returnSpdDur)
     {
-        yield return new WaitForSeconds(duration);
+        yield return StartCoroutine(CoroutineUtil.WaitForRealSeconds(stopDur));
+
+        float currTime = 0;
+        while(currTime < returnSpdDur)
+        {
+            currTime += Time.unscaledDeltaTime;
+
+            float val = currTime / returnSpdDur * (1 - mTimeScale); 
+            if (val > 1) val = 1;
+
+            Time.timeScale = mTimeScale + val;
+            yield return null;
+        }
+
+        Time.timeScale = 1;
+        Time.fixedDeltaTime = mSavedFixedDT;
         mIsUsingBomb = false;
         GameManager.sSingleton.isTimeStopBomb = false;
-        BulletManager.sSingleton.ResetValAfterTimeStop();
     }
 }

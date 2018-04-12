@@ -35,9 +35,6 @@ public class HazardManager : MonoBehaviour
     List<Transform> mRockList = new List<Transform>();
     List<Hazard> mAllHazardList = new List<Hazard>();
 
-    float mDisableHazardimer, mDisableHazardTime = 0, mReturnDefaultSpdDur = 0;
-    List<Transform> mStoppedEnvObjList = new List<Transform>();
-
     void Awake()
     {
         if (_sSingleton != null && _sSingleton != this) Destroy(this.gameObject);
@@ -54,19 +51,6 @@ public class HazardManager : MonoBehaviour
         }	
 	}
 
-    void Update()
-    {
-        if (mDisableHazardTime != 0)
-        {
-            mDisableHazardimer += Time.deltaTime;
-            if (mDisableHazardimer > mDisableHazardTime)
-            {
-                mDisableHazardTime = 0;
-                mDisableHazardimer = 0;
-                EnableHazardMovement(mReturnDefaultSpdDur);
-            }
-        }
-    }
     public List<Transform> GetRockList { get { return mRockList; } }
 
     public void InstantiateAndCacheHazards(int total)
@@ -97,45 +81,5 @@ public class HazardManager : MonoBehaviour
 //            if(hazardName == TagManager.sSingleton.hazardRock)
             mAllHazardList.Add(new Hazard(type, currHazardList));
         }
-    }
-
-    public void TimeStopEffect(float stopDuration, float returnDefaultSpdDur)
-    {
-        DisableHazardMovement(stopDuration);
-        mReturnDefaultSpdDur = returnDefaultSpdDur;
-    }
-
-    void EnableHazardMovement(float duration)
-    {
-        for (int i = 0; i < mStoppedEnvObjList.Count; i++)
-        {
-            Transform currTrans = mStoppedEnvObjList[i];
-            if (currTrans.gameObject.activeSelf) currTrans.GetComponent<EnvironmentalObject>().EnableSpeed(duration);
-        }
-
-        mStoppedEnvObjList.Clear();
-    }
-
-    void DisableHazardMovement(float duration)
-    {
-        // Loop through all pick-ups.
-        for (int i = 0; i < mAllHazardList.Count; i++)
-        {
-            Hazard currHazard = mAllHazardList[i];
-
-            // Loop through all the same type of pick-ups.
-            for (int j = 0; j < currHazard.hazardList.Count; j++)
-            {
-                Transform currTrans = currHazard.hazardList[j];
-
-                if (currTrans.gameObject.activeSelf)
-                {
-                    currTrans.gameObject.GetComponent<EnvironmentalObject>().DisableSpeed();
-                    mStoppedEnvObjList.Add(currTrans);
-                }
-            }
-        }
-
-        mDisableHazardTime = duration;
     }
 }

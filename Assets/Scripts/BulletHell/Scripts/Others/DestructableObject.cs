@@ -30,7 +30,7 @@ public class DestructableObject : MonoBehaviour
 
                 // Move object up slightly.
                 Vector3 pos = transform.position;
-                pos.y += Time.deltaTime * impactMultiplier;
+                pos.y += Time.unscaledDeltaTime * impactMultiplier;
                 transform.position = pos;
 
                 // Update player's score.

@@ -11,15 +11,20 @@ public class BulletMove : MonoBehaviour
     float mAngle = 0;
 
     int mCurrChangeIndex = 0;
-    float mChangeSpeedTimer = 0, mSavedSpeed = 0, mAngleSpeed = 1;
+    float mChangeSpeedTimer = 0;
     List<BulletManager.ChangeBulletProp> newChangeList = new List<BulletManager.ChangeBulletProp>();
 
     RotateAround mRotateAround;
 
 	void Update () 
     {
-        BulletManager.Bullet.State currState = bullet.state;
+        float deltaTime = 0;
+        if (gameObject.tag == TagManager.sSingleton.player1BulletTag || gameObject.tag == TagManager.sSingleton.player2BulletTag)
+            deltaTime = Time.unscaledDeltaTime;
+        else 
+            deltaTime = Time.deltaTime;
 
+        // Change the speed of enemy bullet.
         if (mCurrChangeIndex < newChangeList.Count)
         {
             mChangeSpeedTimer += Time.deltaTime;
@@ -31,26 +36,27 @@ public class BulletMove : MonoBehaviour
             }
         }
 
+        BulletManager.Bullet.State currState = bullet.state;
         if (currState == BulletManager.Bullet.State.NONE) return;
-        else if (currState == BulletManager.Bullet.State.ONE_DIRECTION) transform.Translate(bullet.direction * bullet.speed * Time.deltaTime);
+        else if (currState == BulletManager.Bullet.State.ONE_DIRECTION) transform.Translate(bullet.direction * bullet.speed * deltaTime);
         else if (currState == BulletManager.Bullet.State.SINE_WAVE)
         {
-            mCurrPos += bullet.direction * bullet.speed * Time.deltaTime;
+            mCurrPos += bullet.direction * bullet.speed * deltaTime;
             transform.position = (Vector3)mCurrPos + mCurveAxis * Mathf.Sin (mAngle * bullet.frequency) * (bullet.magnitude + (mAngle * bullet.magnitudeExpandMult));
 
-            mAngle += Time.deltaTime * mAngleSpeed;
+            mAngle += deltaTime;
             if (mAngle >= (Mathf.PI * 2)) mAngle = 0;
         }
-        else if (currState == BulletManager.Bullet.State.STYLE_ATK_1)
-        {
-            transform.Translate(bullet.direction * bullet.speed * Time.deltaTime);
-
-            if (bullet.speed == 0)
-            {
-                mRotateAround.radius = Vector3.Distance(mRotateAround.center.position, transform.position);
-//                Debug.Log("AA");
-            }
-        }
+//        else if (currState == BulletManager.Bullet.State.STYLE_ATK_1)
+//        {
+//            transform.Translate(bullet.direction * bullet.speed * Time.deltaTime);
+//
+//            if (bullet.speed == 0)
+//            {
+//                mRotateAround.radius = Vector3.Distance(mRotateAround.center.position, transform.position);
+////                Debug.Log("AA");
+//            }
+//        }
 	}
 
     // Set initial values when being instantiated.
@@ -112,19 +118,6 @@ public class BulletMove : MonoBehaviour
         mAngle = 0;
     }
 
-    // Duration it takes for the bullet to return to default speed.
-    public void EnableSpeed(float duration)
-    {
-        StartCoroutine(ReturnDefaultSpeedSequence(duration, mSavedSpeed));
-    }
-
-    public void DisableSpeed()
-    {
-        mSavedSpeed = bullet.speed;
-        bullet.speed = 0;
-        mAngleSpeed = 0;
-    }
-
     public void SetChangedBulletSpeed(List<BulletManager.ChangeBulletProp> newList) { this.newChangeList = newList; }
     public void SetCurveAxis(Vector2 vec) { mCurveAxis = new Vector3(vec.x, vec.y, 0); }
 
@@ -133,25 +126,5 @@ public class BulletMove : MonoBehaviour
     { 
         get { return bullet.direction; } 
         set { bullet.direction = value; }
-    }
-
-    IEnumerator ReturnDefaultSpeedSequence (float duration, float defaultSpeed)
-    {
-        float currTime = 0;
-
-        while(currTime < duration)
-        {
-            bullet.speed = currTime / duration * defaultSpeed; 
-            mAngleSpeed = currTime / duration; 
-
-            currTime += Time.deltaTime;
-            if (currTime >= duration)
-            {
-                bullet.speed = defaultSpeed;
-                mAngleSpeed = 1;
-            }
-
-            yield return null;
-        }
     }
 }

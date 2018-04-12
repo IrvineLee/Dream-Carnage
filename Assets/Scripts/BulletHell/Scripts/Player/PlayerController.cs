@@ -110,10 +110,10 @@ public class PlayerController : MonoBehaviour
     void HandleMovement()
     {
         // Basic wasd movement.
-        if (Input.GetKey(KeyCode.UpArrow)) transform.Translate(Vector3.up * moveSpeed * Time.deltaTime);
-        if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
-        if (Input.GetKey(KeyCode.DownArrow)) transform.Translate(Vector3.down * moveSpeed * Time.deltaTime);
-        if (Input.GetKey(KeyCode.RightArrow)) transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
+        if (Input.GetKey(KeyCode.UpArrow)) transform.Translate(Vector3.up * moveSpeed * Time.unscaledDeltaTime);
+        if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.unscaledDeltaTime);
+        if (Input.GetKey(KeyCode.DownArrow)) transform.Translate(Vector3.down * moveSpeed * Time.unscaledDeltaTime);
+        if (Input.GetKey(KeyCode.RightArrow)) transform.Translate(Vector3.right * moveSpeed * Time.unscaledDeltaTime);
 
 //        if(Input.GetKey(KeyCode.Space)) CameraShake.sSingleton.ShakeCamera();
 
@@ -239,7 +239,7 @@ public class PlayerController : MonoBehaviour
     {
         mIsCoroutineList[index] = true;
         doFirst();
-        yield return new WaitForSeconds (time); 
+        yield return StartCoroutine(CoroutineUtil.WaitForRealSeconds(time)); 
         mIsCoroutineList[index] = false;
     }
 

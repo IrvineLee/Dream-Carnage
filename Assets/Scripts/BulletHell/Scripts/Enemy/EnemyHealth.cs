@@ -17,7 +17,7 @@ public class EnemyHealth : MonoBehaviour
             Debug.Log("Enemy health transform is null.");
 
         mHpBar = GetComponent<Image>();
-        StartCoroutine(RefillBarSequence(refillBarDuration));
+        if (enemyTrans.gameObject.activeSelf) StartCoroutine(RefillBarSequence(refillBarDuration));
 	}
 	
 	void Update () 
@@ -45,10 +45,18 @@ public class EnemyHealth : MonoBehaviour
     IEnumerator RefillBarSequence(float duration)
     {
         float val = 0;
+        mRefillBarTimer = 0;
+
         while(mRefillBarTimer < duration)
         {
-            mRefillBarTimer += Time.deltaTime;
+            float deltaTime = 0;
+
+            if (GameManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
+            else deltaTime = Time.deltaTime;
+
+            mRefillBarTimer += deltaTime;
             val = mRefillBarTimer / duration;
+
             if (val > 1) val = 1;
             mHpBar.fillAmount = val;
             yield return null;

@@ -31,11 +31,14 @@ public class ShootAtk : AttackPattern
         mIsCoroutine = true;
         while (mTimer < duration)
         {
-            if (onceStartDelay != 0)
+            while (onceStartDelay > 0)
             {
-                mTimer += onceStartDelay;
-                yield return new WaitForSeconds(onceStartDelay);
-                onceStartDelay = 0;
+                if (!GameManager.sSingleton.isTimeStopBomb)
+                {
+                    mTimer += Time.deltaTime;
+                    onceStartDelay -= Time.deltaTime;
+                }
+                yield return null;
             }
 
             if (!BulletManager.sSingleton.IsDisableSpawnBullet)
@@ -65,11 +68,14 @@ public class ShootAtk : AttackPattern
         mIsCoroutine = true;
         while (mTimer < duration)
         {
-            if (onceStartDelay != 0)
+            while (onceStartDelay > 0)
             {
-                mTimer += onceStartDelay;
-                yield return new WaitForSeconds(onceStartDelay);
-                onceStartDelay = 0;
+                if (!GameManager.sSingleton.isTimeStopBomb)
+                {
+                    mTimer += Time.deltaTime;
+                    onceStartDelay -= Time.deltaTime;
+                }
+                yield return null;
             }
 
             if (!BulletManager.sSingleton.IsDisableSpawnBullet)
@@ -84,15 +90,15 @@ public class ShootAtk : AttackPattern
                 float startAngle = angle - halfViewAngle;
                 float endAngle = angle + halfViewAngle;
 
-                //            float x = Mathf.Sin(startAngle);
-                //            float y = Mathf.Cos(startAngle);
-                //            Vector2 target = new Vector3(transform.position.x + x, transform.position.y + y);
-                //            Debug.DrawLine (transform.position, target, Color.green);
-                //
-                //            x = Mathf.Sin(endAngle);
-                //            y = Mathf.Cos(endAngle);
-                //            target = new Vector3(transform.position.x + x, transform.position.y + y);
-                //            Debug.DrawLine (transform.position, target, Color.green);
+//                float x = Mathf.Sin(startAngle);
+//                float y = Mathf.Cos(startAngle);
+//                Vector2 target = new Vector3(transform.position.x + x, transform.position.y + y);
+//                Debug.DrawLine (transform.position, target, Color.green);
+//
+//                x = Mathf.Sin(endAngle);
+//                y = Mathf.Cos(endAngle);
+//                target = new Vector3(transform.position.x + x, transform.position.y + y);
+//                Debug.DrawLine (transform.position, target, Color.green);
 
                 float inc = (viewAngle * Mathf.Deg2Rad) / segments;
                 for (float i = startAngle; i < endAngle; i += inc)
@@ -100,7 +106,7 @@ public class ShootAtk : AttackPattern
                     float x = Mathf.Sin(i);
                     float y = Mathf.Cos(i);
                     Vector2 target = new Vector3(mOwner.position.x + x, mOwner.position.y + y);
-                    //            Debug.DrawLine(transform.position, target, Color.red);
+//                    Debug.DrawLine(transform.position, target, Color.red);
 
                     Transform currBullet = getBulletTrans();
                     currBullet.position = (Vector3)target;

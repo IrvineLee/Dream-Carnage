@@ -9,6 +9,7 @@ public class Enemy1 : EnemyBase
 
     static int mBulletNum = 0;
 
+    IEnumerator mMovementCo;
     int mCurrMoveNum = 0;
     bool mIsUpdatedAtk = false;
 
@@ -30,20 +31,17 @@ public class Enemy1 : EnemyBase
         if (Input.GetKey(KeyCode.S)) transform.Translate(Vector3.down * moveSpeed * Time.deltaTime);
         if (Input.GetKey(KeyCode.D)) transform.Translate(Vector3.right * moveSpeed * Time.deltaTime);
 
-        if (mCurrActionNum < mListOfActionList.Count)
+        if (currActionNum < mListOfActionList.Count)
         {
             // Handle movement.
-            if (mCurrMoveNum < movementList.Count)
+            if (currActionNum < movementList.Count && !movementList[currActionNum].isCoroutine)
             {
-                Movement currMovement = movementList[mCurrMoveNum];
-                if (currMovement.currActionNum == mCurrActionNum)
-                {
-                    if(!currMovement.isCoroutine) StartCoroutine(MoveToPos(currMovement, AddToNextMovement));
-                }
+                mMovementCo = MoveToWayPoint();
+                StartCoroutine(MoveToWayPoint());
             }
 
             // Handle current action. Loop is when there are more than 1 attack pattern together.
-            List<Action> currAP = mListOfActionList[mCurrActionNum];
+            List<Action> currAP = mListOfActionList[currActionNum];
             for (int i = 0; i < currAP.Count; i++)
             { currAP[i](); }
         }
@@ -53,7 +51,8 @@ public class Enemy1 : EnemyBase
     {
         if (!mIsUpdatedAtk)
         {
-            mCurrActionNum++;
+            StopCurrMovement(mMovementCo);
+            currActionNum++;
             mIsUpdatedAtk = true;
         }
     }
@@ -142,7 +141,7 @@ public class Enemy1 : EnemyBase
         else if (ap is SineWaveAtk) actionList.Add(new Action( () => SineWaveShoot( (SineWaveAtk) ap) ));
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerStay2D(Collider2D other)
     {
         if (other is BoxCollider2D)
         {

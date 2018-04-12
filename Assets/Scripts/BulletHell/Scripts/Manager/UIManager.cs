@@ -171,7 +171,6 @@ public class UIManager : MonoBehaviour
         currPlayer.toReachScore = score;
 
         if(!currPlayer.isCoroutine) StartCoroutine(AddScoreSequence(player));
-//        currPlayer.score_UI.text = GetScoreWithZero(score.ToString());
     }
 
     public void UpdateBomb(int player, int currBomb)

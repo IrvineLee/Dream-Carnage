@@ -51,6 +51,7 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\AttackPattern\ShootAroundInCircleAtk.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\AttackPattern\ShootAtk.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\AttackPattern\SineWaveAtk.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Attribute\ReadOnlyAttribute.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Bullet\BulletController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Bullet\BulletMove.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Bullet\EnemyBulletControl.cs" />
@@ -58,6 +59,7 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Bullet\PlayerBulletControl.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\Enemy1.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\EnemyBase.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\EnemyHealth.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\EnemyMoveController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\MagicCirlce.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\BgManager.cs" />
@@ -69,6 +71,8 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\PotraitShowManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\TagManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\UIManager.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\CameraShake.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\CoroutineUtil.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DeadZone.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DestructableObject.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\EnvironmentalObject.cs" />

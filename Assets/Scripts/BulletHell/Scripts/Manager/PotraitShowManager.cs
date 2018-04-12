@@ -106,7 +106,7 @@ public class PotraitShowManager : MonoBehaviour
         float alphaVal = 0, currOffsetVal = 0, totalTime = 0;
         while(currOffsetVal < potrait.offset)
         {
-            totalTime += Time.deltaTime;
+            totalTime += Time.unscaledDeltaTime;
             currOffsetVal = totalTime / potrait.moveTime * potrait.offset;
             sr.transform.position = defaultPos;
 
@@ -122,14 +122,14 @@ public class PotraitShowManager : MonoBehaviour
         }
 
         if (potrait.stayMethod == Potrait.Stay.NONE)
-            yield return new WaitForSeconds(potrait.stayDuration);
+            yield return StartCoroutine(CoroutineUtil.WaitForRealSeconds(potrait.stayDuration));
         else if (potrait.stayMethod == Potrait.Stay.CONTINUE_MOVE)
         {
             float timer = 0;
             while (timer < potrait.stayDuration)
             {
-                timer += Time.deltaTime;
-                sr.transform.position = OffsetPosition(sr.transform.position, potrait.moveDirection, Time.deltaTime * potrait.stayMoveSpeed);
+                timer += Time.unscaledDeltaTime;
+                sr.transform.position = OffsetPosition(sr.transform.position, potrait.moveDirection, Time.unscaledDeltaTime * potrait.stayMoveSpeed);
                 yield return null; 
             }
         }
@@ -143,11 +143,11 @@ public class PotraitShowManager : MonoBehaviour
             while (sr.color.a > 0)
             {
                 Vector3 temp = currTrans.localScale;
-                temp.x += Time.deltaTime * potrait.closeSpeed;
-                temp.y += Time.deltaTime * potrait.closeSpeed;
+                temp.x += Time.unscaledDeltaTime * potrait.closeSpeed;
+                temp.y += Time.unscaledDeltaTime * potrait.closeSpeed;
                 currTrans.localScale = temp;
 
-                alphaVal -= Time.deltaTime;
+                alphaVal -= Time.unscaledDeltaTime;
                 FadeController.sSingleton.SetAlpha(ref sr, alphaVal);
 
                 yield return null; 
@@ -158,10 +158,10 @@ public class PotraitShowManager : MonoBehaviour
             float totalYScale = currTrans.localScale.y;
             while(currTrans.localScale.y > 0)
             {
-                sr.transform.position = OffsetPosition(sr.transform.position, potrait.moveDirection, Time.deltaTime * potrait.closeMoveSpeed);
+                sr.transform.position = OffsetPosition(sr.transform.position, potrait.moveDirection, Time.unscaledDeltaTime * potrait.closeMoveSpeed);
 
                 Vector3 temp = currTrans.localScale;
-                temp.y -= Time.deltaTime * potrait.closeSpeed;
+                temp.y -= Time.unscaledDeltaTime * potrait.closeSpeed;
                 if (temp.y < 0) temp.y = 0;
                 currTrans.localScale = temp;
 
