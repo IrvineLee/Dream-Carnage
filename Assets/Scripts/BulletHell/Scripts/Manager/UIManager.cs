@@ -53,7 +53,7 @@ public class UIManager : MonoBehaviour
     List<PlayerInfo> playerUIList = new List<PlayerInfo>();
 
     Text mSecondText, mMilliSecondText;
-    float mDuration = 0;
+    float mDuration = 0, mSavedTimeScale;
 
     int mCurrPlayerNum = 0, mPauseSelectIndex = 0;
     bool mIsPauseMenu = false;
@@ -126,6 +126,7 @@ public class UIManager : MonoBehaviour
     public void EnablePauseScreen(int playerNum)
     {
         mIsPauseMenu = true;
+        mSavedTimeScale = Time.timeScale;
         Time.timeScale = 0;
         mCurrPlayerNum = playerNum - 1;
 
@@ -142,7 +143,7 @@ public class UIManager : MonoBehaviour
 
         mCurrPlayerNum = 0;
         mPauseSelectIndex = 0;
-        Time.timeScale = 1;
+        Time.timeScale = mSavedTimeScale;
         mIsPauseMenu = false;
     }
 

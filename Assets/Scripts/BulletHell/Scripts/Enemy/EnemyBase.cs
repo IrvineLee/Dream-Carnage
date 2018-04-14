@@ -96,25 +96,27 @@ public class EnemyBase : MonoBehaviour
 
     public void PullTrigger(Collider2D other)
     {
-        string p1Tag = TagManager.sSingleton.player1BulletTag;
-        string p2Tag = TagManager.sSingleton.player2BulletTag;
+        if (currHitPoint <= 0) return;
 
-        if (other.tag == p1Tag || other.tag == p2Tag)
-        {
+//        string p1Tag = TagManager.sSingleton.player1BulletTag;
+//        string p2Tag = TagManager.sSingleton.player2BulletTag;
+//
+//        if (other.tag == p1Tag || other.tag == p2Tag)
+//        {
             int damage = other.GetComponent<BulletMove>().GetBulletDamage;
-            GetDamaged(damage);
-
-            if (other.tag == p1Tag)
-            {
-                mPlayer1Controller.UpdateLinkBar();
-                mPlayer1Controller.UpdateScore((int)(damage * scoreMultiplier));
-            }
-            else if (other.tag == p2Tag)
-            {
-                mPlayer2Controller.UpdateLinkBar();
-                mPlayer2Controller.UpdateScore((int)(damage * scoreMultiplier));
-            }
-        }
+//
+//            if (other.tag == p1Tag)
+//            {
+//                mPlayer1Controller.UpdateLinkBar();
+//                mPlayer1Controller.UpdateScore((int)(damage * scoreMultiplier));
+//            }
+//            else if (other.tag == p2Tag)
+//            {
+//                mPlayer2Controller.UpdateLinkBar();
+//                mPlayer2Controller.UpdateScore((int)(damage * scoreMultiplier));
+//            }
+        GetDamaged(damage, other.tag);
+//        }
 
         other.gameObject.SetActive(false);
     }
@@ -168,19 +170,41 @@ public class EnemyBase : MonoBehaviour
         set { mIsStopTime = value; }
     }
 
-    void GetDamaged(int damagedValue)
+    void GetDamaged(int damagedValue, string otherTag)
     {
+        float scoreGet = damagedValue * scoreMultiplier;
+
         currHitPoint -= damagedValue;
         if (currHitPoint <= 0)
         {
             if (isBoss) CameraShake.sSingleton.ShakeCamera();
 
+            scoreGet = currHitPoint + damagedValue;
+
             // TODO: Enemy destroyed animation..
             Destroy(gameObject);
+
             PickUpManager.sSingleton.TransformBulletsIntoPoints(mTypeOfBulletList);
             BulletManager.sSingleton.DisableEnemyBullets(false);
         }
+
+        PlayerGainScore((int)scoreGet, otherTag);
+
         if (!mIsChangeColor) StartCoroutine(GetDamagedColorChange());
+    }
+
+    void PlayerGainScore(int val, string otherTag)
+    {
+        if (otherTag == TagManager.sSingleton.player1BulletTag)
+        {
+            mPlayer1Controller.UpdateLinkBar();
+            mPlayer1Controller.UpdateScore(val);
+        }
+        else if (otherTag == TagManager.sSingleton.player2BulletTag)
+        {
+            mPlayer2Controller.UpdateLinkBar();
+            mPlayer2Controller.UpdateScore(val);
+        }
     }
 
     IEnumerator GetDamagedColorChange()

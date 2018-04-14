@@ -109,6 +109,16 @@ public class PlayerController : MonoBehaviour
 
     void HandleMovement()
     {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            bool isPauseMenu = UIManager.sSingleton.IsPauseMenu;
+
+            if (!isPauseMenu) UIManager.sSingleton.EnablePauseScreen(playerID);
+            else UIManager.sSingleton.DisablePauseScreen();
+        }
+
+        if (UIManager.sSingleton.IsPauseMenu) return;
+
         // Basic wasd movement.
         if (Input.GetKey(KeyCode.UpArrow)) transform.Translate(Vector3.up * moveSpeed * Time.unscaledDeltaTime);
         if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.unscaledDeltaTime);
@@ -135,18 +145,12 @@ public class PlayerController : MonoBehaviour
             moveSpeed = mDefaultMoveSpeed;
             mIsSpeedSlow = false;
         }
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            bool isPauseMenu = UIManager.sSingleton.IsPauseMenu;
-
-            if (!isPauseMenu) UIManager.sSingleton.EnablePauseScreen(playerID);
-            else UIManager.sSingleton.DisablePauseScreen();
-        }
     }
 
     void HandleAttack()
     {
+        if (UIManager.sSingleton.IsPauseMenu) return;
+
         // Primary attack.
         if (Input.GetKey(KeyCode.Z))
         {

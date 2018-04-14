@@ -45,6 +45,11 @@ public class BombController : MonoBehaviour
         float currTime = 0;
         while(currTime < returnSpdDur)
         {
+            while (UIManager.sSingleton.IsPauseMenu)
+            {
+                yield return null;
+            }
+
             currTime += Time.unscaledDeltaTime;
 
             float val = currTime / returnSpdDur * (1 - mTimeScale); 
