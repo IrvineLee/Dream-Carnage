@@ -33,7 +33,7 @@ public class ShootAtk : AttackPattern
         {
             while (onceStartDelay > 0)
             {
-                if (!GameManager.sSingleton.isTimeStopBomb)
+				if (!BombManager.sSingleton.isTimeStopBomb)
                 {
                     mTimer += Time.deltaTime;
                     onceStartDelay -= Time.deltaTime;
@@ -70,7 +70,7 @@ public class ShootAtk : AttackPattern
         {
             while (onceStartDelay > 0)
             {
-                if (!GameManager.sSingleton.isTimeStopBomb)
+				if (!BombManager.sSingleton.isTimeStopBomb)
                 {
                     mTimer += Time.deltaTime;
                     onceStartDelay -= Time.deltaTime;

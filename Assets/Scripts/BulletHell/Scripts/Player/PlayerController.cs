@@ -19,6 +19,18 @@ public class PlayerController : MonoBehaviour
     public float linkValue = 0;
     public float linkMultiplier = 0.5f;
 
+    public Transform hitBoxTrans;
+    public Transform soulTrans;
+    public Transform spriteBoxTrans;
+
+    enum State
+    {
+        NORMAL = 0,
+        DISABLE_CONTROL,
+        DEAD
+    };
+    State state = State.NORMAL;
+
     static int sCurrPowerUpNum = 0;
     static List<Transform> sPowerUpList;
 
@@ -38,16 +50,30 @@ public class PlayerController : MonoBehaviour
 
     Vector3 mPlayerSize, mResetPos;
     float mDefaultMoveSpeed = 0, mDisableCtrlTimer = 0, mInvinsibilityTimer = 0;
-    bool mIsSpeedSlow = false, mIsChangeAlpha = false, mIsDisableControl = false, mIsInvinsible = false;
+	bool mIsSpeedSlow = false, mIsChangeAlpha = false, mIsInvinsible = false, mIsWaitOtherInput = false;
 
     int totalCoroutine = 2;
     List<bool> mIsCoroutineList = new List<bool>();
 
+    SpriteRenderer sr;
     PlayerBulletControl mPlayerBulletControl;
     BombController mBombController;
+    PlayerSoul mPlayerSoul;
+	PlayerController mOtherPlayerController;
 
     void Start () 
     {
+		GameObject[] players = GameObject.FindGameObjectsWithTag (TagManager.sSingleton.playerTag);
+		for (int i = 0; i < players.Length; i++)
+		{
+			PlayerController temp = players [i].GetComponent<PlayerController> ();
+			if(playerID != temp.playerID)
+			{
+				mOtherPlayerController = temp;
+				break;
+			}
+		}
+
         mDefaultMoveSpeed = moveSpeed;
         mPlayerSize = GetComponent<Renderer>().bounds.size;
 
@@ -64,21 +90,70 @@ public class PlayerController : MonoBehaviour
 
         sPowerUpList = PickUpManager.sSingleton.GetBigPowerUpList;
 
+        sr = GetComponent<SpriteRenderer>();
         mPlayerBulletControl = GetComponent<PlayerBulletControl>();
         mBombController = GetComponent<BombController>();
+
+        // TODO : Delete null.
+        if(soulTrans != null)
+            mPlayerSoul = soulTrans.GetComponent<PlayerSoul>();
 
         for (int i = 0; i < totalCoroutine; i++)
         { mIsCoroutineList.Add(false); }
 
         life = GameManager.sSingleton.plyStartLife;
         bomb = GameManager.sSingleton.plyStartBomb;
+
+        UIManager.sSingleton.UpdatePower(playerID, powerLevel, maxPowerLevel);
+        UpdateLinkBar();
 	}
 	
 	void Update () 
     {
-        if (mIsInvinsible && !mIsChangeAlpha) StartCoroutine(GetDamagedAlphaChange());
+        if ((Input.GetKeyDown(KeyCode.Escape) && playerID == 1) ||
+            (Input.GetKeyDown(KeyCode.KeypadMinus) && playerID == 2))
+        {
+            if ((playerID == 1 && !UIManager.sSingleton.isPlayer2Pause) ||
+               (playerID == 2 && !UIManager.sSingleton.isPlayer1Pause))
+            {
+                bool isPauseMenu = UIManager.sSingleton.IsPauseMenu;
 
-        if (mIsDisableControl)
+                if (!isPauseMenu) UIManager.sSingleton.EnablePauseScreen(playerID);
+                else UIManager.sSingleton.DisablePauseScreen();
+            }
+        }
+
+        if (UIManager.sSingleton.IsPauseMenu) return;
+
+        if (mIsInvinsible && !mIsChangeAlpha) StartCoroutine(GetDamagedAlphaChange());
+        if (state == State.NORMAL)
+        {
+            if (mIsInvinsible)
+            {
+                mInvinsibilityTimer += Time.deltaTime;
+                if (mInvinsibilityTimer >= GameManager.sSingleton.plyInvinsibilityTime)
+                {
+                    mIsInvinsible = false;
+                    mInvinsibilityTimer = 0;
+                }
+            }
+
+            HandleMovement();
+            HandleAttack();
+        }
+        else if (state == State.DEAD)
+        {
+            if (Input.GetKey(KeyCode.Return))
+            {
+                // Self-Revive
+                life -= 1;
+                UIManager.sSingleton.UpdateLife(playerID, life);
+
+                ReviveSelf();
+                mPlayerSoul.Deactivate();
+            }
+        }
+        else if (state == State.DISABLE_CONTROL)
         {
             Vector3 pos = transform.position;
             pos.y += Time.deltaTime * GameManager.sSingleton.plyRespawnYSpd;
@@ -88,86 +163,10 @@ public class PlayerController : MonoBehaviour
             if (mDisableCtrlTimer >= GameManager.sSingleton.plyDisabledCtrlTime)
             {
                 mDisableCtrlTimer = 0;
-                mIsDisableControl = false;
-            }
-            if (mIsDisableControl) return;
-        }
-
-        if (mIsInvinsible)
-        {
-            mInvinsibilityTimer += Time.deltaTime;
-            if (mInvinsibilityTimer >= GameManager.sSingleton.plyInvinsibilityTime)
-            {
-                mIsInvinsible = false;
-                mInvinsibilityTimer = 0;
+                state = State.NORMAL;
             }
         }
-
-        HandleMovement();
-        HandleAttack();
 	}
-
-    void HandleMovement()
-    {
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            bool isPauseMenu = UIManager.sSingleton.IsPauseMenu;
-
-            if (!isPauseMenu) UIManager.sSingleton.EnablePauseScreen(playerID);
-            else UIManager.sSingleton.DisablePauseScreen();
-        }
-
-        if (UIManager.sSingleton.IsPauseMenu) return;
-
-        // Basic wasd movement.
-        if (Input.GetKey(KeyCode.UpArrow)) transform.Translate(Vector3.up * moveSpeed * Time.unscaledDeltaTime);
-        if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.unscaledDeltaTime);
-        if (Input.GetKey(KeyCode.DownArrow)) transform.Translate(Vector3.down * moveSpeed * Time.unscaledDeltaTime);
-        if (Input.GetKey(KeyCode.RightArrow)) transform.Translate(Vector3.right * moveSpeed * Time.unscaledDeltaTime);
-
-//        if(Input.GetKey(KeyCode.Space)) CameraShake.sSingleton.ShakeCamera();
-
-        // Prevent player from moving out of screen.
-        transform.position = (new Vector3 (
-            Mathf.Clamp (transform.position.x, border.left, border.right),
-            Mathf.Clamp (transform.position.y, border.bottom, border.top),
-            transform.position.z)
-        );
-
-        // Basic and slow movement control.
-        if (Input.GetKey(KeyCode.LeftShift) && !mIsSpeedSlow)
-        {
-            moveSpeed *= 0.5f; 
-            mIsSpeedSlow = true;
-        }
-        else if (Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            moveSpeed = mDefaultMoveSpeed;
-            mIsSpeedSlow = false;
-        }
-    }
-
-    void HandleAttack()
-    {
-        if (UIManager.sSingleton.IsPauseMenu) return;
-
-        // Primary attack.
-        if (Input.GetKey(KeyCode.Z))
-        {
-            if(!mIsCoroutineList[0]) StartCoroutine(DoFirstThenDelay(0, () => mPlayerBulletControl.PrimaryWeaponShoot(0), primaryShootDelay));
-            if(powerLevel > 0 && !mIsCoroutineList[1]) StartCoroutine(DoFirstThenDelay(1, () => mPlayerBulletControl.SecondaryWeaponShoot(1), secondaryShootDelay));
-        }
-        // Bomb.
-        if (Input.GetKeyDown(KeyCode.X) && !mBombController.IsUsingBomb)
-        {
-            if (bomb > 0)
-            {
-                mBombController.ActivateBomb();
-                bomb -= 1;
-                UIManager.sSingleton.UpdateBomb(playerID, bomb);
-            }
-        }
-    }
 
     public Vector3 PlayerSize { get { return this.mPlayerSize; } }
     public bool IsInvinsible { get { return this.mIsInvinsible; } }
@@ -186,6 +185,12 @@ public class PlayerController : MonoBehaviour
         UIManager.sSingleton.UpdateLinkBar(playerID, linkValue);
     }
 
+    public void ResetLinkBar()
+    {
+        linkValue = 0;
+        UIManager.sSingleton.UpdateLinkBar(playerID, linkValue);
+    }
+
     public void GetPowerUp(float val)
     {
         if (powerLevel < maxPowerLevel)
@@ -200,22 +205,143 @@ public class PlayerController : MonoBehaviour
     {
         if (mIsInvinsible) return;
 
-        life -= 1;
-        UIManager.sSingleton.UpdateLife(playerID, life);
 //        Debug.Log("Die");
-        // TODO: Player destroyed animation..
+// TODO: Player destroyed animation..
 //        Destroy(gameObject);
 
-        powerLevel = 0;
-        transform.position = mResetPos;
-        moveSpeed = mDefaultMoveSpeed;
+        state = State.DEAD;
         DropPower();
-        UIManager.sSingleton.UpdatePower(playerID, powerLevel, maxPowerLevel);
 
+        // Reset the values to default.
+        powerLevel = 0;
+        moveSpeed = mDefaultMoveSpeed;
         mIsSpeedSlow = false;
-        mIsDisableControl = true;
         mIsInvinsible = true;
+
+        // Disable currnet sprite and activate soul transform.
+        sr.enabled = false;
+        hitBoxTrans.gameObject.SetActive(false);
+        spriteBoxTrans.gameObject.SetActive(false);
+        mPlayerSoul.Activate();
+
+        UIManager.sSingleton.UpdatePower(playerID, powerLevel, maxPowerLevel);
         BulletManager.sSingleton.DisableEnemyBullets(true);
+    }
+
+    public void ReviveSelf()
+    {
+        state = State.DISABLE_CONTROL;
+        transform.position = mResetPos;
+
+        sr.enabled = true;
+        hitBoxTrans.gameObject.SetActive(true);
+        spriteBoxTrans.gameObject.SetActive(true);
+    }
+
+    void HandleMovement()
+    {
+        if (BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.PLAYER_INPUT || 
+            BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.ACTIVATE_PAUSE) return;
+
+        if (playerID == 1)
+        {
+            //            // Player 1 only movement.
+            //            if (Input.GetKey(KeyCode.UpArrow)) transform.Translate(Vector3.up * moveSpeed * Time.unscaledDeltaTime);
+            //            if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.unscaledDeltaTime);
+            //            if (Input.GetKey(KeyCode.DownArrow)) transform.Translate(Vector3.down * moveSpeed * Time.unscaledDeltaTime);
+            //            if (Input.GetKey(KeyCode.RightArrow)) transform.Translate(Vector3.right * moveSpeed * Time.unscaledDeltaTime);
+
+            // Basic wasd movement.
+            if (Input.GetKey(KeyCode.T)) transform.Translate(Vector3.up * moveSpeed * Time.unscaledDeltaTime);
+            if (Input.GetKey(KeyCode.F)) transform.Translate(Vector3.left * moveSpeed * Time.unscaledDeltaTime);
+            if (Input.GetKey(KeyCode.G)) transform.Translate(Vector3.down * moveSpeed * Time.unscaledDeltaTime);
+            if (Input.GetKey(KeyCode.H)) transform.Translate(Vector3.right * moveSpeed * Time.unscaledDeltaTime);
+
+            // Basic and slow movement control.
+            if (Input.GetKey(KeyCode.LeftShift) && !mIsSpeedSlow)
+            {
+                moveSpeed *= 0.5f; 
+                mIsSpeedSlow = true;
+            }
+            else if (Input.GetKeyUp(KeyCode.LeftShift))
+            {
+                moveSpeed = mDefaultMoveSpeed;
+                mIsSpeedSlow = false;
+            }
+        }
+        else if(playerID == 2)
+        {
+            // Basic wasd movement.
+            if (Input.GetKey(KeyCode.UpArrow)) transform.Translate(Vector3.up * moveSpeed * Time.unscaledDeltaTime);
+            if (Input.GetKey(KeyCode.LeftArrow)) transform.Translate(Vector3.left * moveSpeed * Time.unscaledDeltaTime);
+            if (Input.GetKey(KeyCode.DownArrow)) transform.Translate(Vector3.down * moveSpeed * Time.unscaledDeltaTime);
+            if (Input.GetKey(KeyCode.RightArrow)) transform.Translate(Vector3.right * moveSpeed * Time.unscaledDeltaTime);
+
+            // Basic and slow movement control.
+            if (Input.GetKey(KeyCode.Comma) && !mIsSpeedSlow)
+            {
+                moveSpeed *= 0.5f; 
+                mIsSpeedSlow = true;
+            }
+            else if (Input.GetKeyUp(KeyCode.Comma))
+            {
+                moveSpeed = mDefaultMoveSpeed;
+                mIsSpeedSlow = false;
+            }
+        }
+
+        // Prevent player from moving out of screen.
+        transform.position = (new Vector3 (
+            Mathf.Clamp (transform.position.x, border.left, border.right),
+            Mathf.Clamp (transform.position.y, border.bottom, border.top),
+            transform.position.z)
+        );
+    }
+
+    void HandleAttack()
+    {
+        if (BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE)
+        {
+            // Primary attack.
+            if ((playerID == 1 && Input.GetKey(KeyCode.Z)) || (playerID == 2 && Input.GetKey(KeyCode.Period)))
+            {
+                if(!mIsCoroutineList[0]) StartCoroutine(DoFirstThenDelay(0, () => mPlayerBulletControl.PrimaryWeaponShoot(0), primaryShootDelay));
+                if(powerLevel > 0 && !mIsCoroutineList[1]) StartCoroutine(DoFirstThenDelay(1, () => mPlayerBulletControl.SecondaryWeaponShoot(1), secondaryShootDelay));
+            }
+        }
+
+        // Bomb.
+		if (( (playerID == 1 && Input.GetKeyDown(KeyCode.X)) || (playerID == 2 && Input.GetKeyDown(KeyCode.Slash)) ) && 
+			!mBombController.IsUsingBomb && !mIsWaitOtherInput )
+        {
+			if (bomb > 0) 
+			{
+                bomb -= 1;
+                UIManager.sSingleton.UpdateBomb(playerID, bomb);
+
+				// The other player receiver during dual link ultimate.
+                if(BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.PLAYER_INPUT)
+				{
+					Debug.Log("Activate pause before shooting.");
+                    BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.ACTIVATE_PAUSE;
+                    mBombController.ActivatePotrait();
+				}
+
+				// If both players gauge are full, stop time for input of second player.
+                if (linkValue >= 1 && mOtherPlayerController.linkValue >= 1 && BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) 
+				{
+					Debug.Log("Player started dual link bomb");
+					Time.timeScale = 0;
+                    mBombController.ActivatePotrait();
+
+					mIsWaitOtherInput = true;
+                    BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.PLAYER_INPUT;
+					StartCoroutine (WaitOtherResponseSequence (BombManager.sSingleton.bombDualLinkInputDur));
+				}
+
+                if(BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) mBombController.ActivateBomb();
+			}
+        }
     }
 
     // Drop power down on screen when died.
@@ -250,7 +376,7 @@ public class PlayerController : MonoBehaviour
     IEnumerator GetDamagedAlphaChange()
     {
         mIsChangeAlpha = true;
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
+
         Color temp = sr.color;
         temp.a = GameManager.sSingleton.plyRespawnAlpha;
         sr.color = temp;
@@ -264,9 +390,36 @@ public class PlayerController : MonoBehaviour
         mIsChangeAlpha = false;
     }
 
+	IEnumerator WaitOtherResponseSequence (float stopDur)
+	{
+		float timer = 0;
+		while(timer < stopDur)
+		{
+			// The real dual link activation happens in the bomb manager.
+            if (BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.ACTIVATE_PAUSE) 
+			{
+				mIsWaitOtherInput = false;
+				yield break;
+			}
+
+			timer += Time.unscaledDeltaTime;
+			yield return null;
+		}
+
+		Time.timeScale = 1;
+		mIsWaitOtherInput = false;
+        mBombController.ResetDualLinkVal();
+
+        mBombController.ActivateBomb();
+		Debug.Log ("Time ended.");
+	}
+
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUpTag || other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag)
-            other.GetComponent<EnvironmentalObject>().SetPlayer(transform);
+        if (state != State.DEAD)
+        {
+            if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUpTag || other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag)
+                other.GetComponent<EnvironmentalObject>().SetPlayer(transform);
+        }
     }
 }

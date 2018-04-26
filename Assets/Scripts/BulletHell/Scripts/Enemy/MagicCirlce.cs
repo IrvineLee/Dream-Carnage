@@ -31,7 +31,7 @@ public class MagicCirlce : MonoBehaviour
 
 	void Update () 
     {
-        if (GameManager.sSingleton.isTimeStopBomb) return;
+		if (BombManager.sSingleton.isTimeStopBomb) return;
 
         transform.Rotate(Vector3.forward * rotateSpeed * Time.deltaTime);
 

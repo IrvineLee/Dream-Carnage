@@ -21,6 +21,8 @@ public class GameManager : MonoBehaviour
     public int plyStartLife = 2;
     public int plyMaxBomb = 5;
     public int plyStartBomb = 3;
+    public float plySoulTime = 11;
+    public float plyRevPressNum = 10;
 
     public float plyDisabledCtrlTime = 1;
     public float plyInvinsibilityTime = 2;
@@ -40,8 +42,6 @@ public class GameManager : MonoBehaviour
     public int enemyBulletsTotal = 200;
     public int pickUpsTotal = 50;
     public int hazardsTotal = 10;
-
-    [HideInInspector] public bool isTimeStopBomb = false;
 
     void Awake()
     {

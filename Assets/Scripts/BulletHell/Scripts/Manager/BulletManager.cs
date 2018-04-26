@@ -25,6 +25,7 @@ public class BulletManager : MonoBehaviour
         public int damage;
         public float speed;
         public float spawnY_Offset;
+        public bool isPiercing;
 
         // Sine wave variables.
         public float frequency;  // Speed of sine movement
@@ -42,6 +43,7 @@ public class BulletManager : MonoBehaviour
             magnitude = 1;
             spawnY_Offset = 0;
             magnitudeExpandMult = 0;
+            isPiercing = false;
         }
 
         public Bullet(Transform prefab, Vector2 direction, int damage, float speed)

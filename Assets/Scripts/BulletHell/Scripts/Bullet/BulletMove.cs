@@ -68,6 +68,7 @@ public class BulletMove : MonoBehaviour
         this.bullet.speed = bullet.speed;
         this.bullet.frequency = bullet.frequency;
         this.bullet.magnitude = bullet.magnitude;
+        this.bullet.isPiercing = bullet.isPiercing;
     }
 
     public void SetBulletValues(BulletManager.Bullet.State state, Vector2 direction, float speed)
@@ -122,6 +123,7 @@ public class BulletMove : MonoBehaviour
     public void SetCurveAxis(Vector2 vec) { mCurveAxis = new Vector3(vec.x, vec.y, 0); }
 
     public int GetBulletDamage { get { return bullet.damage; } }
+    public bool IsPiercing { get { return bullet.isPiercing; } }
     public Vector2 BulletDirection
     { 
         get { return bullet.direction; } 

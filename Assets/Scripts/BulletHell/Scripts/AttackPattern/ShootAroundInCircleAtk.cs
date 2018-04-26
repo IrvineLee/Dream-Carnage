@@ -8,6 +8,7 @@ public class ShootAroundInCircleAtk : AttackPattern
     public bool clockwise = true;
     public float distance;
     public int segments;
+    public float startTurnDelay;
     public float turningRate;
     public float increaseTR;
     public float increaseTRTime;
@@ -15,7 +16,7 @@ public class ShootAroundInCircleAtk : AttackPattern
     public float xOffset;
     public float yOffset;
 
-    public List<BulletManager.ChangeBulletProp> slowDownList = new List<BulletManager.ChangeBulletProp>();
+    public List<BulletManager.ChangeBulletProp> speedChangeList = new List<BulletManager.ChangeBulletProp>();
 
     float mAngle, mIncreaseTRTimer, mSlowDownTimer;
 
@@ -37,7 +38,7 @@ public class ShootAroundInCircleAtk : AttackPattern
         {
             while (onceStartDelay > 0)
             {
-                if (!GameManager.sSingleton.isTimeStopBomb)
+				if (!BombManager.sSingleton.isTimeStopBomb)
                 {
                     mTimer += Time.deltaTime;
                     onceStartDelay -= Time.deltaTime;
@@ -47,13 +48,17 @@ public class ShootAroundInCircleAtk : AttackPattern
 
             if (!BulletManager.sSingleton.IsDisableSpawnBullet)
             {
-                mIncreaseTRTimer += Time.deltaTime;
-                if (turningRate < maxTR && mIncreaseTRTimer >= increaseTRTime)
+                if (startTurnDelay <= 0)
                 {
-                    turningRate += increaseTR;
-                    if (turningRate > maxTR) turningRate = maxTR;
-                    mIncreaseTRTimer = 0;
+                    mIncreaseTRTimer += Time.deltaTime;
+                    if (turningRate < maxTR && mIncreaseTRTimer >= increaseTRTime)
+                    {
+                        turningRate += increaseTR;
+                        if (turningRate > maxTR) turningRate = maxTR;
+                        mIncreaseTRTimer = 0;
+                    }
                 }
+                else startTurnDelay -= shootDelay - Time.deltaTime;
 
                 for (int i = 0; i < segments; i++)
                 {
@@ -72,14 +77,14 @@ public class ShootAroundInCircleAtk : AttackPattern
                     BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
                     BulletManager.Bullet.State state = BulletManager.Bullet.State.ONE_DIRECTION;
 
-                    if (mRotateAround != null)
-                    {
-                        bulletMove.AddRotateAround(mRotateAround);
-                        state = BulletManager.Bullet.State.STYLE_ATK_1;
-                    }
+//                    if (mRotateAround != null)
+//                    {
+//                        bulletMove.AddRotateAround(mRotateAround);
+//                        state = BulletManager.Bullet.State.STYLE_ATK_1;
+//                    }
 
                     bulletMove.SetBulletValues(state, dir, bulletSpeed);
-                    bulletMove.SetChangedBulletSpeed(slowDownList);
+                    bulletMove.SetChangedBulletSpeed(speedChangeList);
                 }
 
                 mAngle += (turningRate * Mathf.Deg2Rad);

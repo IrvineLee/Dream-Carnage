@@ -34,7 +34,7 @@ public class EnvironmentalObject : MonoBehaviour
 
     void Start()
     {
-        mPlayerHitBox = GameObject.FindGameObjectWithTag(TagManager.sSingleton.hitboxTag).transform;
+//        mPlayerHitBox = GameObject.FindGameObjectWithTag(TagManager.sSingleton.hitboxTag).transform;
     }
 
 	void Update () 

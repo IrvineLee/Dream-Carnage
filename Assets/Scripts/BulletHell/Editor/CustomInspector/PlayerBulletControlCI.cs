@@ -43,6 +43,7 @@ public class PlayerBulletControlCI : Editor
 
                     currBullet.direction = EditorGUILayout.Vector2Field("Direction", currBullet.direction);
                     currBullet.spawnY_Offset = EditorGUILayout.FloatField("SpawnY_Offset", currBullet.spawnY_Offset);
+                    currBullet.isPiercing = EditorGUILayout.Toggle("Is_Piercing", currBullet.isPiercing);
 
                     if (currState == BulletManager.Bullet.State.SINE_WAVE)
                     {

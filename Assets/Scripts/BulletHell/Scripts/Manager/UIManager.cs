@@ -15,6 +15,8 @@ public class UIManager : MonoBehaviour
     public float countUpScoreSpd = 10;
     public int maxPauseButton = 3;
 
+    [HideInInspector] public bool isPlayer1Pause = false, isPlayer2Pause = false;
+
     class PlayerInfo
     {
         public Transform lifePointTrans, bombTrans, pauseTrans;
@@ -125,6 +127,9 @@ public class UIManager : MonoBehaviour
 
     public void EnablePauseScreen(int playerNum)
     {
+        if (playerNum == 1) isPlayer1Pause = true;
+        else isPlayer2Pause = true;
+
         mIsPauseMenu = true;
         mSavedTimeScale = Time.timeScale;
         Time.timeScale = 0;
@@ -137,6 +142,9 @@ public class UIManager : MonoBehaviour
 
     public void DisablePauseScreen()
     {
+        isPlayer1Pause = false;
+        isPlayer2Pause = false;
+
         Transform pauseTrans = playerUIList[mCurrPlayerNum].pauseTrans;
         pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = Color.white;
         pauseTrans.gameObject.SetActive(false);
@@ -210,6 +218,12 @@ public class UIManager : MonoBehaviour
         timerUI.gameObject.SetActive(true);
         mDuration = duration;
         UpdateBossTimer(mDuration);
+    }
+
+    public void DeactivateBossTimer()
+    {
+        timerUI.gameObject.SetActive(false);
+        mDuration = 0;
     }
 
     void InitializeUI(Transform playerUI, int index)

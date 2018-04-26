@@ -14,8 +14,9 @@ public class PlayerBulletControl : BulletController
 
     void Start () 
     {
-        mBulletGroupList = BulletManager.sSingleton.GetPlayer1BulletGroup;
         mPlayerController = GetComponent<PlayerController>();
+        if (mPlayerController.playerID == 1) mBulletGroupList = BulletManager.sSingleton.GetPlayer1BulletGroup;
+        else if(mPlayerController.playerID == 2) mBulletGroupList = BulletManager.sSingleton.GetPlayer2BulletGroup;
 
         for (int i = 0; i < mBulletGroupList.Count; i++)
         { mBulletNumList.Add(0); }

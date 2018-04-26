@@ -13,18 +13,24 @@ public class Enemy1 : EnemyBase
     int mCurrMoveNum = 0;
     bool mIsUpdatedAtk = false;
 
+    EnemyBase mEnemyBase;
+    EnemyHealth mEnemyHealth;
+
     public override void Start()
     {
         base.Start();
         mTypeOfBulletList = BulletManager.sSingleton.GetEnemy1BulletGroup;
 
+        mEnemyBase = gameObject.GetComponentInParent<EnemyBase>();
+        mEnemyHealth = healthBarTrans.GetComponent<EnemyHealth>();
+
         for (int i = 0; i < attackPatternList.Count; i++)
         {  AddToActionList(attackPatternList[i]); }
     }
 
-	void Update () 
+	public override void Update () 
     {
-        if (mIsStopTime) return;
+        base.Update();
 
         if (Input.GetKey(KeyCode.W)) transform.Translate(Vector3.up * moveSpeed * Time.deltaTime);
         if (Input.GetKey(KeyCode.A)) transform.Translate(Vector3.left * moveSpeed * Time.deltaTime);
@@ -123,6 +129,7 @@ public class Enemy1 : EnemyBase
             {
                 AttackPattern currAP = ap.transform.GetChild(i).GetComponent<AttackPattern>();
                 currAP.duration = ap.duration;
+				currAP.isShowDuration = ap.isShowDuration;
 //                currAP.isDisableBulletAftDone = ap.isDisableBulletAftDone;
 //                currAP.onceStartDelay = ap.onceStartDelay;
                 AddCurrAttack(currAP, ref actionList);
@@ -145,8 +152,8 @@ public class Enemy1 : EnemyBase
     {
         if (other is BoxCollider2D)
         {
-            gameObject.GetComponentInParent<EnemyBase>().PullTrigger(other);
-            healthBarTrans.GetComponent<EnemyHealth>().UpdateHpBarUI(currHitPoint, totalHitPoint);
+            mEnemyBase.PullTrigger(other);
+            mEnemyHealth.UpdateHpBarUI(currHitPoint, totalHitPoint);
         }
     }
 }

@@ -15,11 +15,12 @@ public class TagManager : MonoBehaviour
 
     // Touhou tags.
     public string gmTag = "GameManager";
-//    public string player1Tag = "Player";
-//    public string player2Tag = "Player2";
+    public string playerTag = "Player";
     public string hitboxTag = "Hitbox";
     public string player1BulletTag = "Player1Bullet";
     public string player2BulletTag = "Player2Bullet";
+    public string reviveCircleTag = "ReviveCircle";
+
     public string enemyTag = "Enemy";
     public string enemyBulletTag = "EnemyBullet";
     public string attackPatternTag = "AttackPattern";

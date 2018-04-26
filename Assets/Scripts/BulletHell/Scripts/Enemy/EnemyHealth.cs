@@ -51,7 +51,7 @@ public class EnemyHealth : MonoBehaviour
         {
             float deltaTime = 0;
 
-            if (GameManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
+			if (BombManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
             else deltaTime = Time.deltaTime;
 
             mRefillBarTimer += deltaTime;

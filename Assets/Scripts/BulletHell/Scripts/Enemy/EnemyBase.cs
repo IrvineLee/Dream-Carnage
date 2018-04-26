@@ -39,6 +39,9 @@ public class EnemyBase : MonoBehaviour
 
     // Status.
     public bool isBoss = false;
+    public float pingPongSpeed = 0.01f;
+    public float pingPongVal = 0.005f;
+    public bool isEndShakeScreen = false;
     public int currHitPoint = 100;
     public int totalHitPoint = 100;
     public float moveSpeed = 1;
@@ -58,14 +61,14 @@ public class EnemyBase : MonoBehaviour
 
     protected Transform mPlayer1, mPlayer2;
     protected List<BulletManager.Individual.TypeOfBullet> mTypeOfBulletList;
+    protected SpriteRenderer sr;
     protected MagicCirlce mMagicCircle;
 
     protected List<List<Action>> mListOfActionList = new List<List<Action>>();
-    protected bool mIsStopTime = false;
 
-    Rigidbody2D rgBody;
     bool mIsChangeColor = false;
 
+    Rigidbody2D rgBody;
     PlayerController mPlayer1Controller, mPlayer2Controller;
 
     void Awake()
@@ -84,8 +87,24 @@ public class EnemyBase : MonoBehaviour
             mPlayer2Controller = mPlayer2.GetComponent<PlayerController>();
         }
 
-        rgBody = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
         mMagicCircle = gameObject.GetComponentInChildren<MagicCirlce>();
+
+        rgBody = GetComponent<Rigidbody2D>();
+    }
+
+    public virtual void Update()
+    {
+        if (UIManager.sSingleton.IsPauseMenu || 
+            BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.PLAYER_INPUT ||
+            BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.ACTIVATE_PAUSE) return;
+
+		if (isBoss)
+        {
+            Vector3 temp = transform.position;
+			temp.y = PingPong(Time.time * pingPongSpeed, temp.y - pingPongVal, temp.y + pingPongVal);
+            transform.position = temp;
+        }
     }
 
     public void EnableMagicCircle()
@@ -98,30 +117,21 @@ public class EnemyBase : MonoBehaviour
     {
         if (currHitPoint <= 0) return;
 
-//        string p1Tag = TagManager.sSingleton.player1BulletTag;
-//        string p2Tag = TagManager.sSingleton.player2BulletTag;
-//
-//        if (other.tag == p1Tag || other.tag == p2Tag)
-//        {
-            int damage = other.GetComponent<BulletMove>().GetBulletDamage;
-//
-//            if (other.tag == p1Tag)
-//            {
-//                mPlayer1Controller.UpdateLinkBar();
-//                mPlayer1Controller.UpdateScore((int)(damage * scoreMultiplier));
-//            }
-//            else if (other.tag == p2Tag)
-//            {
-//                mPlayer2Controller.UpdateLinkBar();
-//                mPlayer2Controller.UpdateScore((int)(damage * scoreMultiplier));
-//            }
-        GetDamaged(damage, other.tag);
-//        }
+        int damage = 0;
+        string otherLayer = LayerMask.LayerToName(other.gameObject.layer);
 
-        other.gameObject.SetActive(false);
+        if (otherLayer == TagManager.sSingleton.playerBulletLayer)
+        {
+            damage = other.GetComponent<BulletMove>().GetBulletDamage;
+            other.gameObject.SetActive(false);
+        }
+        else damage = other.GetComponent<LaserMove>().dmgPerFrame;
+//        Debug.Log(damage);
+
+        GetDamaged(damage, other.tag);
     }
 
-    public IEnumerator MoveToWayPoint()
+    protected IEnumerator MoveToWayPoint()
     {
         int savedActionNum = currActionNum;
         movementList[savedActionNum].isCoroutine = true;
@@ -141,8 +151,8 @@ public class EnemyBase : MonoBehaviour
                 moveInfo.moveDirection = moveInfo.target - transform.position;
                 moveInfo.velocity = rgBody.velocity;
 
-                if (moveInfo.moveDirection.magnitude < 0.5f) moveInfo.currWayPoint++;
-                else moveInfo.velocity = moveInfo.moveDirection.normalized * currWayPoint.speed;
+				if (moveInfo.moveDirection.magnitude < 0.5f) moveInfo.currWayPoint++;
+				else moveInfo.velocity = moveInfo.moveDirection.normalized * currWayPoint.speed;
             }
             else
             {
@@ -164,10 +174,9 @@ public class EnemyBase : MonoBehaviour
         rgBody.velocity = Vector3.zero;
     }
 
-    public bool IsStopTime
+    float PingPong(float aValue, float aMin, float aMax)
     {
-        get { return mIsStopTime; }
-        set { mIsStopTime = value; }
+        return Mathf.PingPong(aValue, aMax-aMin) + aMin;
     }
 
     void GetDamaged(int damagedValue, string otherTag)
@@ -177,15 +186,16 @@ public class EnemyBase : MonoBehaviour
         currHitPoint -= damagedValue;
         if (currHitPoint <= 0)
         {
-            if (isBoss) CameraShake.sSingleton.ShakeCamera();
+            if (isEndShakeScreen) CameraShake.sSingleton.ShakeCamera();
 
-            scoreGet = currHitPoint + damagedValue;
+            scoreGet = (currHitPoint + damagedValue) * scoreMultiplier;
 
             // TODO: Enemy destroyed animation..
             Destroy(gameObject);
 
             PickUpManager.sSingleton.TransformBulletsIntoPoints(mTypeOfBulletList);
             BulletManager.sSingleton.DisableEnemyBullets(false);
+            UIManager.sSingleton.DeactivateBossTimer();
         }
 
         PlayerGainScore((int)scoreGet, otherTag);
@@ -210,7 +220,6 @@ public class EnemyBase : MonoBehaviour
     IEnumerator GetDamagedColorChange()
     {
         mIsChangeColor = true;
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
         Color defaultColor = sr.color;
 
         sr.color = GameManager.sSingleton.enemyDmgColor;
