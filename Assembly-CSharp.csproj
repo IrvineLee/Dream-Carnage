@@ -97,6 +97,9 @@
      <Compile Include="Assets\Scripts\Visual Novel\Scripts\MenuButton.cs" />
      <None Include="Assets\Shader\DiffuseNotEqualOne.shader" />
      <None Include="Assets\Shader\MaskOneZLess.shader" />
+ <Reference Include="Facebook.Unity.Settings">
+ <HintPath>C:/Users/Owner/Desktop/2018 Build Games/Dream Carnage/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
+ </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
