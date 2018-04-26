@@ -102,7 +102,7 @@ public class EnemyBase : MonoBehaviour
 		if (isBoss)
         {
             Vector3 temp = transform.position;
-			temp.y = PingPong(Time.time * pingPongSpeed, temp.y - pingPongVal, temp.y + pingPongVal);
+            temp.y = PingPong(Time.time * pingPongSpeed * Time.timeScale, temp.y - pingPongVal, temp.y + pingPongVal);
             transform.position = temp;
         }
     }

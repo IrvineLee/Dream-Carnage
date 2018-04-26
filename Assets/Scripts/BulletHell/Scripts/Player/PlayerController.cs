@@ -146,9 +146,6 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKey(KeyCode.Return))
             {
                 // Self-Revive
-                life -= 1;
-                UIManager.sSingleton.UpdateLife(playerID, life);
-
                 ReviveSelf();
                 mPlayerSoul.Deactivate();
             }
@@ -230,6 +227,9 @@ public class PlayerController : MonoBehaviour
 
     public void ReviveSelf()
     {
+        life -= 1;
+        UIManager.sSingleton.UpdateLife(playerID, life);
+
         state = State.DISABLE_CONTROL;
         transform.position = mResetPos;
 
