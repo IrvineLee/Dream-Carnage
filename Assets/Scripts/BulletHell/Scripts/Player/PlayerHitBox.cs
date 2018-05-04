@@ -18,7 +18,7 @@ public class PlayerHitBox : MonoBehaviour
             mPlayerController.GetDamaged();
             if(!mPlayerController.IsInvinsible) other.gameObject.SetActive(false);
         }
-        else if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUpTag)
+        else if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUp1Tag || other.tag == TagManager.sSingleton.ENV_OBJ_PowerUp2Tag)
         {
             float val = other.GetComponent<EnvironmentalObject>().value;
             mPlayerController.GetPowerUp(val); 

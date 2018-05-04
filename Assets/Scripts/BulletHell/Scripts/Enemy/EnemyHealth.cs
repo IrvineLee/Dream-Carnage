@@ -50,7 +50,6 @@ public class EnemyHealth : MonoBehaviour
         while(mRefillBarTimer < duration)
         {
             float deltaTime = 0;
-
 			if (BombManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
             else deltaTime = Time.deltaTime;
 

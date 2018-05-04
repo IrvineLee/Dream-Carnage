@@ -53,20 +53,21 @@ public class EnemyBase : MonoBehaviour
     public Animator anim;
 
     [ReadOnly] public int currActionNum = 0;
-    public List<AttackPattern> attackPatternList = new List<AttackPattern>();
+    public List<Transform> attackTransList = new List<Transform>();
 
     // Enemy movement.
     public MoveInfo moveInfo;
     public List<Movement> movementList = new List<Movement>();
 
     protected Transform mPlayer1, mPlayer2;
-    protected List<BulletManager.Individual.TypeOfBullet> mTypeOfBulletList;
+    protected List<List<Transform>> mBulletList = new List<List<Transform>>();
     protected SpriteRenderer sr;
     protected MagicCirlce mMagicCircle;
 
     protected List<List<Action>> mListOfActionList = new List<List<Action>>();
 
-    bool mIsChangeColor = false;
+    Vector3 target;
+    bool mIsChangeColor = false, mIsPPUp = true, mIsGetPPTarget = true;
 
     Rigidbody2D rgBody;
     PlayerController mPlayer1Controller, mPlayer2Controller;
@@ -101,9 +102,21 @@ public class EnemyBase : MonoBehaviour
 
 		if (isBoss)
         {
-            Vector3 temp = transform.position;
-            temp.y = PingPong(Time.time * pingPongSpeed * Time.timeScale, temp.y - pingPongVal, temp.y + pingPongVal);
-            transform.position = temp;
+            if (mIsGetPPTarget)
+            {
+                target = transform.position;
+                mIsGetPPTarget = false;
+
+                if (mIsPPUp) target.y += pingPongVal;
+                else target.y -= pingPongVal;
+            }
+
+            transform.position = Vector3.MoveTowards(transform.position, target, pingPongSpeed * Time.deltaTime);
+            if (transform.position == target)
+            {
+                mIsGetPPTarget = true;
+                mIsPPUp = !mIsPPUp;
+            }
         }
     }
 
@@ -125,8 +138,7 @@ public class EnemyBase : MonoBehaviour
             damage = other.GetComponent<BulletMove>().GetBulletDamage;
             other.gameObject.SetActive(false);
         }
-        else damage = other.GetComponent<LaserMove>().dmgPerFrame;
-//        Debug.Log(damage);
+        else damage = other.GetComponent<Laser>().dmgPerFrame;
 
         GetDamaged(damage, other.tag);
     }
@@ -174,11 +186,6 @@ public class EnemyBase : MonoBehaviour
         rgBody.velocity = Vector3.zero;
     }
 
-    float PingPong(float aValue, float aMin, float aMax)
-    {
-        return Mathf.PingPong(aValue, aMax-aMin) + aMin;
-    }
-
     void GetDamaged(int damagedValue, string otherTag)
     {
         float scoreGet = damagedValue * scoreMultiplier;
@@ -193,7 +200,7 @@ public class EnemyBase : MonoBehaviour
             // TODO: Enemy destroyed animation..
             Destroy(gameObject);
 
-            PickUpManager.sSingleton.TransformBulletsIntoPoints(mTypeOfBulletList);
+            BulletManager.sSingleton.TransformBulletsIntoScorePU();
             BulletManager.sSingleton.DisableEnemyBullets(false);
             UIManager.sSingleton.DeactivateBossTimer();
         }

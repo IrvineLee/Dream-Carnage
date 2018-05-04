@@ -37,8 +37,7 @@ public class GameManager : MonoBehaviour
 
     public float pointPU_SpeedToPly = 10;
 
-    public int p1BulletsTotal = 20;
-    public int p2BulletsTotal = 20;
+    public int plyBulletsTotal = 20;
     public int enemyBulletsTotal = 200;
     public int pickUpsTotal = 50;
     public int hazardsTotal = 10;
@@ -51,21 +50,42 @@ public class GameManager : MonoBehaviour
 
 	void Start () 
     {
-        BulletManager bulletMgr = BulletManager.sSingleton;
-
-        // Player 1 and 2 bullet instantiate.
-        if (player1 != null) bulletMgr.InstantiateAndCacheBullet(player1, p1BulletsTotal);
-        if (player2 != null) bulletMgr.InstantiateAndCacheBullet(player2, p2BulletsTotal);
-
-        // Enemy bullet instantiate.
-        List<Transform> enemyList = EnemyManager.sSingleton.EnemyList;
-        for (int i = 0; i < enemyList.Count; i++)
+        BulletPrefabData bulletData = BulletManager.sSingleton.bulletPrefabData;
+        // Player main bullet instantiate.
+        for (int i = 0; i < bulletData.plyMainBulletTransList.Count; i++)
         {
-            bulletMgr.InstantiateAndCacheBullet(enemyList[i], enemyBulletsTotal);
+            Transform currBullet = bulletData.plyMainBulletTransList[i];
+            BulletManager.sSingleton.InstantiateAndCacheBullet(currBullet, plyBulletsTotal, 0);
         }
 
-        PickUpManager.sSingleton.InstantiateAndCachePickUp(pickUpsTotal);
-        HazardManager.sSingleton.InstantiateAndCacheHazards(hazardsTotal);
+        // Player secondary bullet instantiate.
+        for (int i = 0; i < bulletData.plySecondaryBulletTransList.Count; i++)
+        {
+            Transform currBullet = bulletData.plySecondaryBulletTransList[i];
+            BulletManager.sSingleton.InstantiateAndCacheBullet(currBullet, plyBulletsTotal, 1);
+        }
+
+        // Enemy bullet instantiate.
+        for (int i = 0; i < bulletData.enemyBulletTransList.Count; i++)
+        {
+            Transform currBullet = bulletData.enemyBulletTransList[i];
+            BulletManager.sSingleton.InstantiateAndCacheBullet(currBullet, enemyBulletsTotal, 2);
+        }
+
+        EnvObjPrefabData envObjData = EnvObjManager.sSingleton.envObjPrefabData;
+        // Pickable environmental object instantiate.
+        for (int i = 0; i < envObjData.pickableObjTransList.Count; i++)
+        {
+            Transform currPickableObj = envObjData.pickableObjTransList[i];
+            EnvObjManager.sSingleton.InstantiateAndCacheEnvObj(currPickableObj, pickUpsTotal);
+        }
+
+        // Damagable environmental object instantiate.
+        for (int i = 0; i < envObjData.hazardTransList.Count; i++)
+        {
+            Transform currHazard = envObjData.hazardTransList[i];
+            EnvObjManager.sSingleton.InstantiateAndCacheEnvObj(currHazard, hazardsTotal);
+        }
 	}
 
     public int TotalNumOfPlayer()

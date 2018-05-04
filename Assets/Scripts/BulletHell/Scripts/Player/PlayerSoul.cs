@@ -31,6 +31,7 @@ public class PlayerSoul : MonoBehaviour
 
             if (mTimer <= 0)
             {
+				mPlayerController.MinusLife ();
                 mPlayerController.ReviveSelf();
                 Deactivate();
                 Debug.Log("Ended");

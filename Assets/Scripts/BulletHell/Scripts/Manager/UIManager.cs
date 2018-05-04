@@ -215,9 +215,12 @@ public class UIManager : MonoBehaviour
 
     public void ActivateBossTimer(float duration)
     {
-        timerUI.gameObject.SetActive(true);
-        mDuration = duration;
-        UpdateBossTimer(mDuration);
+        if (!timerUI.gameObject.activeSelf)
+        {
+            timerUI.gameObject.SetActive(true);
+            mDuration = duration;
+            UpdateBossTimer(mDuration);
+        }
     }
 
     public void DeactivateBossTimer()

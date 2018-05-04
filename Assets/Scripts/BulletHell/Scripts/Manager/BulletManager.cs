@@ -4,122 +4,35 @@ using UnityEngine;
 
 public class BulletManager : MonoBehaviour 
 {
-    public static BulletManager sSingleton { get { return _sSingleton; } }
+    public static BulletManager sSingleton 
+    { 
+        get 
+        { 
+            if (_sSingleton == null)
+                _sSingleton = (BulletManager)FindObjectOfType(typeof(BulletManager));
+            return _sSingleton; 
+        } 
+    }
     static BulletManager _sSingleton;
 
-    [System.Serializable]
-    public class Bullet
+    public enum GroupIndex
     {
-        public enum State
-        {
-            NONE = 0,
-            ONE_DIRECTION,
-            SINE_WAVE,
-            STYLE_ATK_1
-        }
-        public State state;
-
-        // General stats.
-        public Transform prefab;
-        public Vector2 direction;
-        public int damage;
-        public float speed;
-        public float spawnY_Offset;
-        public bool isPiercing;
-
-        // Sine wave variables.
-        public float frequency;  // Speed of sine movement
-        public float magnitude;   // Size of sine movement
-        public float magnitudeExpandMult;
-
-        public Bullet()
-        {
-            state = State.NONE;
-            prefab = null;
-            direction = Vector2.up;
-            damage = 1;
-            speed = 1.0f;
-            frequency = 1;
-            magnitude = 1;
-            spawnY_Offset = 0;
-            magnitudeExpandMult = 0;
-            isPiercing = false;
-        }
-
-        public Bullet(Transform prefab, Vector2 direction, int damage, float speed)
-        {
-            this.state = State.ONE_DIRECTION;
-            this.prefab = prefab;
-            this.direction = direction;
-            this.damage = damage;
-            this.speed = speed;
-        }
-
-        public Bullet(Transform prefab, Vector2 direction, int damage, float speed, float frequency, float magnitude)
-        {
-            this.state = State.SINE_WAVE;
-            this.prefab = prefab;
-            this.direction = direction;
-            this.damage = damage;
-            this.speed = speed;
-            this.frequency = frequency;
-            this.magnitude = magnitude;
-        }
+        PLAYER_MAIN = 0,
+        PLAYER_SECONDARY,
+        ENEMY
     }
 
-    [System.Serializable]
-    public class ChangeBulletProp
-    {
-        public float time;
-        public float speed;
-    }
+    public BulletPrefabData bulletPrefabData;
+    public List<int> plyCurrMainBulIndexList = new List<int>();
+    public List<int> plyCurrSecondBulIndexList = new List<int>();
+    public List<int> enemyCurrBulIndexList = new List<int>();
 
-    // Group of individual bullets.
-    public class Individual
-    {
-        public string ownerName;
-        public List<TypeOfBullet> typeOfBulletList;
-
-        public class TypeOfBullet
-        {
-            public string bulletName;
-            public List<Transform> bulletTransList;
-
-            public TypeOfBullet()
-            {
-                this.bulletName = "";
-                this.bulletTransList = new List<Transform>();
-            }
-
-            public TypeOfBullet(string name, List<Transform> bulletTransList)
-            {
-                this.bulletName = name;
-                this.bulletTransList = bulletTransList;
-            }
-        }
-
-        public Individual()
-        {
-            this.ownerName = "";
-            this.typeOfBulletList = new List<TypeOfBullet>();
-        }
-
-        public Individual(string name, List<TypeOfBullet> bulletGroupList)
-        {
-            this.ownerName = name;
-            this.typeOfBulletList = bulletGroupList;
-        }
-    }
+    List<List<Transform>> mPlyMainBulletList = new List<List<Transform>>();
+    List<List<Transform>> mPlySecondaryBulletList = new List<List<Transform>>();
+    List<List<Transform>> mEnemyBulletList = new List<List<Transform>>();
 
     bool mIsDisableSpawnBullet = false;
     float mDisableSpawnBulletTimer = 0, mDisableSpawnBulletTime = 0;
-
-    List<Individual.TypeOfBullet> mP1BulletGroupList = new List<Individual.TypeOfBullet>();
-    List<Individual.TypeOfBullet> mP2BulletGroupList = new List<Individual.TypeOfBullet>();
-    List<Individual.TypeOfBullet> mEnemy1BulletGroupList = new List<Individual.TypeOfBullet>();
-
-    List<Individual> mAllBulletList = new List<Individual>();
-    List<Individual> mAllEnemyBulletList = new List<Individual>();
 
     void Awake()
     {
@@ -129,7 +42,18 @@ public class BulletManager : MonoBehaviour
 
     void Start()
     {
-        Initialize();
+        for (int i = 0; i < mPlyMainBulletList.Count; i++)
+        {
+            plyCurrMainBulIndexList.Add(0);
+        }
+        for (int i = 0; i < mPlySecondaryBulletList.Count; i++)
+        {
+            plyCurrSecondBulIndexList.Add(0);
+        }
+        for (int i = 0; i < mEnemyBulletList.Count; i++)
+        {
+            enemyCurrBulIndexList.Add(0);
+        }
     }
 
     void Update()
@@ -146,119 +70,109 @@ public class BulletManager : MonoBehaviour
         }
     }
 
-    void Initialize()
+    public void SetBulletTag(GroupIndex groupIndex, int index, string tag)
     {
-        for (int i = 0; i < mAllBulletList.Count; i++)
+        if (groupIndex == GroupIndex.PLAYER_MAIN)
         {
-            string ownerName = mAllBulletList[i].ownerName;
-            List<Individual.TypeOfBullet> typeOfBulletList = mAllBulletList[i].typeOfBulletList;
-
-            if (ownerName == TagManager.sSingleton.player1BulletName) mP1BulletGroupList = typeOfBulletList;
-            else if (ownerName == TagManager.sSingleton.player2BulletName) mP2BulletGroupList = typeOfBulletList;
-            else if (ownerName == TagManager.sSingleton.enemy1BulletName) 
+            for (int i = 0; i < mPlyMainBulletList[index].Count; i++)
             {
-                AddFromToList(typeOfBulletList, ref mEnemy1BulletGroupList);
-                mAllEnemyBulletList.Add(new Individual("EnemyBullets", typeOfBulletList));
+                mPlyMainBulletList[index][i].tag = tag;
+            }
+        }
+        else if (groupIndex == GroupIndex.PLAYER_SECONDARY)
+        {
+            for (int i = 0; i < mPlySecondaryBulletList[index].Count; i++)
+            {
+                mPlySecondaryBulletList[index][i].tag = tag;
+            }
+        }
+        else if (groupIndex == GroupIndex.ENEMY)
+        {
+            for (int i = 0; i < mEnemyBulletList[index].Count; i++)
+            {
+                mEnemyBulletList[index][i].tag = tag;
             }
         }
     }
 
-    void AddFromToList(List<Individual.TypeOfBullet> fromList, ref List<Individual.TypeOfBullet> toList)
+    public bool IsDisableSpawnBullet { get { return mIsDisableSpawnBullet; } }
+
+    public void InstantiateAndCacheBullet(Transform currBullet, int total, int groupIndex)
     {
-        for (int i = 0; i < fromList.Count; i++)
-        {
-            if (toList.Count != 0 && toList[i].bulletName == fromList[i].bulletName)
-            {
-                for (int j = 0; j < fromList[i].bulletTransList.Count; j++)
-                {
-                    toList[i].bulletTransList.Add(fromList[i].bulletTransList[j]);
-                }
-            }
-            else toList.Add(fromList[i]);
-        }
-    }
-
-    public List<Individual.TypeOfBullet> GetPlayer1BulletGroup { get { return mP1BulletGroupList; } }
-    public List<Individual.TypeOfBullet> GetPlayer2BulletGroup { get { return mP2BulletGroupList; } }
-    public List<Individual.TypeOfBullet> GetEnemy1BulletGroup { get { return mEnemy1BulletGroupList; } }
-
-    public bool IsDisableSpawnBullet { get { return mIsDisableSpawnBullet; } set { mIsDisableSpawnBullet = value; } }
-
-    public void InstantiateAndCacheBullet(Transform ownerTrans, int total)
-    {
-        List<Bullet> bulletList = ownerTrans.GetComponent<BulletController>().bulletList;
-        int count = bulletList.Count;
-
         // Group name.
         GameObject go = new GameObject();
-        go.name = ownerTrans.name + "Bullet";   
+        go.name = currBullet.name;   
 
-        List<Individual.TypeOfBullet> typeOfBulletList = new List<Individual.TypeOfBullet>();
-
-        for (int i = 0; i < count; i++)
+        List<Transform> sameBulletList = new List<Transform>();
+        for (int i = 0; i < total; i++)
         {
-            // Group name for type of bullets.
-            GameObject goBulletGroup = new GameObject();
-            string goBulletName = "Bullet" + i;
-            goBulletGroup.name = goBulletName;
-            goBulletGroup.transform.parent = go.transform;
+            Transform trans = Instantiate(currBullet, Vector3.zero, Quaternion.identity);
+            trans.name = currBullet.name;
+            trans.SetParent(go.transform);
+            trans.gameObject.SetActive(false);
 
-            List<Transform> instantiatedList = new List<Transform>();
+            sameBulletList.Add(trans);
 
-            if (bulletList[i].prefab == null) return;
-            
-            // Instantiate total amount of current bullet type.
-            for (int j = 0; j < total; j++)
-            {
-                Bullet ownerBullet = bulletList[i];
-
-                Transform trans = Instantiate(ownerBullet.prefab, Vector3.zero, Quaternion.identity);
-                trans.name = ownerTrans.name;
-                trans.SetParent(goBulletGroup.transform);
-                trans.gameObject.SetActive(false);
-
-                // Set sort order for enemy bullets.
-                SpriteRenderer transSr = trans.GetComponent<SpriteRenderer>();
-                if (transSr != null && transSr.sortingLayerName == TagManager.sSingleton.sortLayerTopG) 
-                    transSr.sortingOrder = j;
-
-                BulletMove bulletMv = trans.gameObject.GetComponent<BulletMove>();
-
-                if (bulletMv != null) bulletMv.SetBulletValues(ownerBullet);
-                else
-                {
-                    BulletMove[] bulletMvArray = trans.gameObject.GetComponentsInChildren<BulletMove>();
-                    for (int k = 0; k < bulletMvArray.Length; k++)
-                    { bulletMvArray[k].SetBulletValues(ownerBullet); }
-                }
-                instantiatedList.Add(trans);
-            }
-            Individual.TypeOfBullet typeOfBullet = new Individual.TypeOfBullet(goBulletName, instantiatedList);
-            typeOfBulletList.Add(typeOfBullet);
+            // Set sort order for enemy bullets.
+            SpriteRenderer transSr = trans.GetComponent<SpriteRenderer>();
+            if (transSr != null && transSr.sortingLayerName == TagManager.sSingleton.sortLayerTopG) 
+                transSr.sortingOrder = i;
         }
-        mAllBulletList.Add(new Individual(go.name, typeOfBulletList));
+
+        if (groupIndex == 0) mPlyMainBulletList.Add(sameBulletList);
+        else if(groupIndex == 1) mPlySecondaryBulletList.Add(sameBulletList);
+        else mEnemyBulletList.Add(sameBulletList);
+    }
+
+    public Transform GetBulletTrans(GroupIndex groupIndex, int index)
+    {
+        // Update index to the next one.
+        int bulletIndex = 0, total = 0;
+        if (groupIndex == GroupIndex.PLAYER_MAIN)
+        {
+            bulletIndex = plyCurrMainBulIndexList[index];
+            total = mPlyMainBulletList[index].Count - 1;
+
+            if (bulletIndex + 1 > total) plyCurrMainBulIndexList[index] = 0;
+            else plyCurrMainBulIndexList[index]++;
+
+            return mPlyMainBulletList[index][bulletIndex];
+        }
+        else if (groupIndex == GroupIndex.PLAYER_SECONDARY)
+        {
+            bulletIndex = plyCurrSecondBulIndexList[index];
+            total = mPlySecondaryBulletList[index].Count - 1;
+
+            if (bulletIndex + 1 > total) plyCurrSecondBulIndexList[index] = 0;
+            else plyCurrSecondBulIndexList[index]++;
+
+            return mPlySecondaryBulletList[index][bulletIndex];
+        }
+        else if (groupIndex == GroupIndex.ENEMY)
+        {
+            bulletIndex = enemyCurrBulIndexList[index];
+            total = mEnemyBulletList[index].Count - 1;
+
+            if (bulletIndex + 1 > total) enemyCurrBulIndexList[index] = 0;
+            else enemyCurrBulIndexList[index]++;
+
+            return mEnemyBulletList[index][bulletIndex];
+        }
+        return null;
     }
 
     public void DisableEnemyBullets(bool isDisableSpawnBullet)
     {
-        for (int i = 0; i < mAllEnemyBulletList.Count; i++)
+        for (int i = 0; i < mEnemyBulletList.Count; i++)
         {
-            Individual currEnemy = mAllEnemyBulletList[i];
-
-            // Loop through all type of bullets of current enemy.
-            for (int j = 0; j < currEnemy.typeOfBulletList.Count; j++)
+            List<Transform> sameBulletList = mEnemyBulletList[i];
+            for (int j = 0; j < sameBulletList.Count; j++)
             {
-                Individual.TypeOfBullet currBulletType = currEnemy.typeOfBulletList[i];
+                Transform currBullet = sameBulletList[j];
+                SpriteRenderer sr = currBullet.GetComponent<SpriteRenderer>();
 
-                // Loop through all the same bullet type.
-                for (int k = 0; k < currBulletType.bulletTransList.Count; k++)
-                {
-                    GameObject currBulletGO = currBulletType.bulletTransList[k].gameObject;
-                    SpriteRenderer sr = currBulletGO.GetComponent<SpriteRenderer>();
-
-                    currBulletGO.GetComponent<Collider2D>().enabled = false;
-                    StartCoroutine(IEAlphaOutSequence(sr));
-                }
+                currBullet.GetComponent<Collider2D>().enabled = false;
+                StartCoroutine(IEAlphaOutSequence(sr));
             }
         }
 
@@ -266,10 +180,21 @@ public class BulletManager : MonoBehaviour
         mDisableSpawnBulletTime = GameManager.sSingleton.enemyDisBulletTime;
     }
 
-    public void ResetValAfterTimeStop()
+    public void TransformBulletsIntoScorePU()
     {
-        mIsDisableSpawnBullet = false;
-        mDisableSpawnBulletTimer = 0;
+        for (int i = 0; i < mEnemyBulletList.Count; i++)
+        {
+            List<Transform> sameBulletList = mEnemyBulletList[i];
+            for (int j = 0; j < sameBulletList.Count; j++)
+            {
+                Transform currBullet = sameBulletList[j];
+                if (currBullet.gameObject.activeSelf)
+                {
+                    Vector3 pos = currBullet.position;
+                    EnvObjManager.sSingleton.TransformBulletIntoScorePU(pos);
+                }
+            }
+        }
     }
 
     IEnumerator IEAlphaOutSequence (SpriteRenderer sr)
@@ -277,8 +202,12 @@ public class BulletManager : MonoBehaviour
         Color color = Color.white;
         while(sr.color.a > 0)
         {
+            float deltaTime = 0;
+            if (BombManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
+            else deltaTime = Time.deltaTime;
+
             color = sr.color;
-            color.a -= Time.unscaledDeltaTime * GameManager.sSingleton.bulletDisappearSpeed;
+            color.a -= deltaTime * GameManager.sSingleton.bulletDisappearSpeed;
             sr.color = color;
 
             yield return null;

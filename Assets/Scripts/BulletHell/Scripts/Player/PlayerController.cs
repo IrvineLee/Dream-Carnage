@@ -32,7 +32,6 @@ public class PlayerController : MonoBehaviour
     State state = State.NORMAL;
 
     static int sCurrPowerUpNum = 0;
-    static List<Transform> sPowerUpList;
 
     class Border
     {
@@ -56,23 +55,18 @@ public class PlayerController : MonoBehaviour
     List<bool> mIsCoroutineList = new List<bool>();
 
     SpriteRenderer sr;
-    PlayerBulletControl mPlayerBulletControl;
+    AttackPattern mAttackPattern;
     BombController mBombController;
     PlayerSoul mPlayerSoul;
 	PlayerController mOtherPlayerController;
 
     void Start () 
     {
-		GameObject[] players = GameObject.FindGameObjectsWithTag (TagManager.sSingleton.playerTag);
-		for (int i = 0; i < players.Length; i++)
-		{
-			PlayerController temp = players [i].GetComponent<PlayerController> ();
-			if(playerID != temp.playerID)
-			{
-				mOtherPlayerController = temp;
-				break;
-			}
-		}
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 2)
+        {
+            if (playerID == 1) mOtherPlayerController = GameManager.sSingleton.player2.GetComponent<PlayerController>();
+            else mOtherPlayerController = GameManager.sSingleton.player1.GetComponent<PlayerController>();
+        }
 
         mDefaultMoveSpeed = moveSpeed;
         mPlayerSize = GetComponent<Renderer>().bounds.size;
@@ -88,10 +82,8 @@ public class PlayerController : MonoBehaviour
         mResetPos.x = Camera.main.ViewportToWorldPoint (new Vector3 (respawnXPos, 0, distance)).x;
         mResetPos.y = Camera.main.ViewportToWorldPoint (new Vector3 (0, 0, distance)).y - (mPlayerSize.y/2);
 
-        sPowerUpList = PickUpManager.sSingleton.GetBigPowerUpList;
-
         sr = GetComponent<SpriteRenderer>();
-        mPlayerBulletControl = GetComponent<PlayerBulletControl>();
+        mAttackPattern = GetComponent<AttackPattern>();
         mBombController = GetComponent<BombController>();
 
         // TODO : Delete null.
@@ -105,7 +97,7 @@ public class PlayerController : MonoBehaviour
         bomb = GameManager.sSingleton.plyStartBomb;
 
         UIManager.sSingleton.UpdatePower(playerID, powerLevel, maxPowerLevel);
-        UpdateLinkBar();
+        UIManager.sSingleton.UpdateLinkBar(playerID, linkValue);
 	}
 	
 	void Update () 
@@ -146,6 +138,7 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKey(KeyCode.Return))
             {
                 // Self-Revive
+				MinusLife();
                 ReviveSelf();
                 mPlayerSoul.Deactivate();
             }
@@ -225,11 +218,14 @@ public class PlayerController : MonoBehaviour
         BulletManager.sSingleton.DisableEnemyBullets(true);
     }
 
+	public void MinusLife()
+	{
+		life -= 1;
+		UIManager.sSingleton.UpdateLife(playerID, life);
+	}
+
     public void ReviveSelf()
     {
-        life -= 1;
-        UIManager.sSingleton.UpdateLife(playerID, life);
-
         state = State.DISABLE_CONTROL;
         transform.position = mResetPos;
 
@@ -305,8 +301,8 @@ public class PlayerController : MonoBehaviour
             // Primary attack.
             if ((playerID == 1 && Input.GetKey(KeyCode.Z)) || (playerID == 2 && Input.GetKey(KeyCode.Period)))
             {
-                if(!mIsCoroutineList[0]) StartCoroutine(DoFirstThenDelay(0, () => mPlayerBulletControl.PrimaryWeaponShoot(0), primaryShootDelay));
-                if(powerLevel > 0 && !mIsCoroutineList[1]) StartCoroutine(DoFirstThenDelay(1, () => mPlayerBulletControl.SecondaryWeaponShoot(1), secondaryShootDelay));
+                if(!mIsCoroutineList[0]) StartCoroutine(DoFirstThenDelay(0, () => mAttackPattern.PrimaryWeaponShoot(), primaryShootDelay));
+                if(powerLevel > 0 && !mIsCoroutineList[1]) StartCoroutine(DoFirstThenDelay(1, () => mAttackPattern.SecondaryWeaponShoot(), secondaryShootDelay));
             }
         }
 
@@ -358,7 +354,7 @@ public class PlayerController : MonoBehaviour
             if (i < 2) pos.x -= (i + 1) * offset;
             else if (i > 2) pos.x += (i - 2) * offset;
 
-            Transform currPowerUp = sPowerUpList[sCurrPowerUpNum];
+            Transform currPowerUp = EnvObjManager.sSingleton.GetBigPowerUp();
             currPowerUp.position = pos;
             currPowerUp.gameObject.SetActive(true);
             sCurrPowerUpNum++;
@@ -418,7 +414,8 @@ public class PlayerController : MonoBehaviour
     {
         if (state != State.DEAD)
         {
-            if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUpTag || other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag)
+            if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUp1Tag || other.tag == TagManager.sSingleton.ENV_OBJ_PowerUp2Tag ||
+                other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUpTag)
                 other.GetComponent<EnvironmentalObject>().SetPlayer(transform);
         }
     }

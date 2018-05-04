@@ -15,7 +15,8 @@ public class TagManager : MonoBehaviour
 
     // Touhou tags.
     public string gmTag = "GameManager";
-    public string playerTag = "Player";
+    public string player1Tag = "Player1";
+    public string player2Tag = "Player2";
     public string hitboxTag = "Hitbox";
     public string player1BulletTag = "Player1Bullet";
     public string player2BulletTag = "Player2Bullet";
@@ -26,8 +27,11 @@ public class TagManager : MonoBehaviour
     public string attackPatternTag = "AttackPattern";
 
     // Tags for environmental objects.
-    public string ENV_OBJ_PowerUpTag = "PowerUp";
+    public string ENV_OBJ_PowerUp1Tag = "PowerUp1";
+    public string ENV_OBJ_PowerUp2Tag = "PowerUp2";
     public string ENV_OBJ_ScorePickUpTag = "ScorePickUp";
+    public string ENV_OBJ_LifePickUpTag = "Life";
+    public string ENV_OBJ_RockTag = "Rock";
     public string ENV_OBJ_DamagePlayerTag = "DamagePlayer";
 
     // Name for intial instantiated transform.
