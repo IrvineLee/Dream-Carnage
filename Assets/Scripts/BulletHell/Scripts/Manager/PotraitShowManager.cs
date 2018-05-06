@@ -91,7 +91,7 @@ public class PotraitShowManager : MonoBehaviour
         // Add sprite and set alpha to 0.
         main.sprite = potrait.sprite;
         main.enabled = true;
-        FadeController.sSingleton.SetAlpha(ref main, 0);
+        FadeController.sSingleton.SetAlpha(main, 0);
 
         main.transform.position = potrait.startPlacement.position;
         StartCoroutine(IEAppearSequence(main, potrait));
@@ -116,7 +116,7 @@ public class PotraitShowManager : MonoBehaviour
             alphaVal = currOffsetVal / potrait.offset;
 
             if (alphaVal > potrait.maxAlpha) alphaVal = potrait.maxAlpha;
-            FadeController.sSingleton.SetAlpha(ref sr, alphaVal);
+            FadeController.sSingleton.SetAlpha(sr, alphaVal);
 
             yield return null; 
         }
@@ -148,7 +148,7 @@ public class PotraitShowManager : MonoBehaviour
                 currTrans.localScale = temp;
 
                 alphaVal -= Time.unscaledDeltaTime;
-                FadeController.sSingleton.SetAlpha(ref sr, alphaVal);
+                FadeController.sSingleton.SetAlpha(sr, alphaVal);
 
                 yield return null; 
             }
@@ -166,7 +166,7 @@ public class PotraitShowManager : MonoBehaviour
                 currTrans.localScale = temp;
 
                 alphaVal = temp.y / totalYScale;
-                FadeController.sSingleton.SetAlpha(ref sr, alphaVal);
+                FadeController.sSingleton.SetAlpha(sr, alphaVal);
 
                 yield return null; 
             }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class BombController : MonoBehaviour 
 {
@@ -12,7 +13,8 @@ public class BombController : MonoBehaviour
     }
     public Type type = Type.NONE;
 
-    public Transform potraitTrans;
+    public SpriteRenderer potraitSR;
+    public float appearSpeed;
 	public Transform dualLinkLaserTrans;
 
     float duration = 3.0f;
@@ -62,7 +64,7 @@ public class BombController : MonoBehaviour
     public void ActivateDualLinkBomb()
     {
         mIsUsingBomb = true;
-        potraitTrans.gameObject.SetActive (false);
+        StartCoroutine(IEAlphaSequence(potraitSR, 0, () => { }));
         dualLinkLaserTrans.gameObject.SetActive (true);
     }
 
@@ -75,12 +77,12 @@ public class BombController : MonoBehaviour
 
     public void ActivatePotrait()
     {
-        potraitTrans.gameObject.SetActive (true);
+        StartCoroutine(IEAlphaSequence(potraitSR, 1, () => { }));
     }
 
     public void ResetDualLinkVal()
     {
-        potraitTrans.gameObject.SetActive (false);
+        StartCoroutine(IEAlphaSequence(potraitSR, 0, () => { }));
         BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.NONE;
     }
 
@@ -111,5 +113,37 @@ public class BombController : MonoBehaviour
         Time.fixedDeltaTime = mSavedFixedDT;
         mIsUsingBomb = false;
 		BombManager.sSingleton.isTimeStopBomb = false;
+    }
+
+    IEnumerator IEAlphaSequence (SpriteRenderer sr, float toAlpha, Action doLast)
+    {
+        Color color = Color.white;
+        if (sr.color.a < toAlpha)
+        {
+            while (sr.color.a < toAlpha)
+            {
+                color = sr.color;
+                color.a += Time.unscaledDeltaTime * appearSpeed;
+
+                if (color.a > toAlpha) color.a = toAlpha;
+                sr.color = color;
+
+                yield return null;
+            }
+        }
+        else
+        {
+            while (sr.color.a > toAlpha)
+            {
+                color = sr.color;
+                color.a -= Time.unscaledDeltaTime * appearSpeed;
+
+                if (color.a < toAlpha) color.a = toAlpha;
+                sr.color = color;
+
+                yield return null;
+            }
+        }
+        doLast();
     }
 }

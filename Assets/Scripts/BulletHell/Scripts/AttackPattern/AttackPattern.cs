@@ -88,9 +88,6 @@ public class AttackPattern : MonoBehaviour
     }
     Properties properties = new Properties();
 
-    List<Transform> mSameMainBulletList = new List<Transform>();
-    List<Transform> mSameSecondaryBulletList = new List<Transform>();
-
     float mTimer, mAngle, mIncreaseTRTimer, mSlowDownTimer;
     bool mIsCoroutine = false;
 
@@ -198,7 +195,12 @@ public class AttackPattern : MonoBehaviour
     public void SecondaryWeaponShoot()
     {
         int numOfMissle = Mathf.FloorToInt(mPlayerController.powerLevel);
-        List<Vector3> posList = mSecondaryAttackType.GetPos(numOfMissle, secondaryBulletOffset, secondaryX_OffsetBetBul);
+
+        List<Vector3> posList = new List<Vector3>();
+        if (secondaryMoveTemplate == SecondaryMoveTemplate.FROM_BACK)
+            posList = mSecondaryAttackType.GetPos_FROM_BACK(numOfMissle, secondaryBulletOffset, secondaryX_OffsetBetBul);
+        else if (secondaryMoveTemplate == SecondaryMoveTemplate.CIRCLE_AROUND_PLAYER)
+            posList = mSecondaryAttackType.GetPos_CIRCLE_AROUND(numOfMissle);
 
         for (int i = 0; i < numOfMissle; i++)
         {

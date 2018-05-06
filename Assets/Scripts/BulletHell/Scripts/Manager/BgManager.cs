@@ -18,10 +18,10 @@ public class BgManager : MonoBehaviour
         height = firstBg.GetComponent<Renderer>().bounds.size.y;
         halfHeight = height / 2;
 
-        Vector2 pos = (Vector2) firstBg.position;
+        Vector3 pos = firstBg.position;
         pos.y += height;
 
-        Transform trans = Instantiate(firstBg, (Vector3)pos, Quaternion.identity);
+        Transform trans = Instantiate(firstBg, pos, Quaternion.identity);
         bgList.Add(trans);
 	}
 	

@@ -15,17 +15,27 @@ public class SecondaryAttackType : MonoBehaviour
 	
 	void Update () 
     {
-        if (moveTemplate == AttackPattern.SecondaryMoveTemplate.CIRCLE_AROUND_PLAYER)
-        {
-            int powerLevel = Mathf.FloorToInt(mPlayerController.powerLevel);
-            if (powerLevel > 0)
-            {
-
-            }
-        }
+//        if (moveTemplate == AttackPattern.SecondaryMoveTemplate.CIRCLE_AROUND_PLAYER)
+//        {
+//            int powerLevel = Mathf.FloorToInt(mPlayerController.powerLevel);
+//            if (powerLevel > 0)
+//            {
+//
+//            }
+//        }
 	}
 
-    public List<Vector3> GetPos(int numOfMissle, Vector2 offsetVec, float offsetBetwBullet)
+//    public List<Vector3> GetPos()
+//    {
+//
+//    }
+
+    public List<Vector3> GetPos_CIRCLE_AROUND(int numOfMissle)
+    {
+        return mPlayerController.fairy.GetFairiesPosition();
+    }
+
+    public List<Vector3> GetPos_FROM_BACK(int numOfMissle, Vector2 offsetVec, float offsetBetwBullet)
     {
         List<Vector3> posList = new List<Vector3>();
         if (moveTemplate == AttackPattern.SecondaryMoveTemplate.FROM_BACK)

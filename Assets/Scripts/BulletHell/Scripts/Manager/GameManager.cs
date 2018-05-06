@@ -91,8 +91,15 @@ public class GameManager : MonoBehaviour
     public int TotalNumOfPlayer()
     {
         int total = 0;
-        if (player1 != null) total++;
-        if (player2 != null) total++;
+        if (player1 != null && player1.gameObject.activeSelf) total++;
+        if (player2 != null && player2.gameObject.activeSelf) total++;
         return total;
+    }
+
+    public bool IsThisPlayerActive(int playerNum)
+    {
+        if (playerNum == 1 && player1 != null && player1.gameObject.activeSelf) return true;
+        else if (playerNum == 2 && player2 != null && player2.gameObject.activeSelf) return true;
+        return false;
     }
 }

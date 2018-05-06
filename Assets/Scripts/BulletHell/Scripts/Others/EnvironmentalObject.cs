@@ -27,13 +27,18 @@ public class EnvironmentalObject : MonoBehaviour
     public float impactMultiplier = 1.0f;
     public float scoreMultiplier = 1.0f;
 
-    Transform mPlayerHitBox;
+    float mDefaultSpdToPlayer;
+    Transform mActivePlyHitBoxTrans;
+
     PlayerController mPlayer1Controller, mPlayer2Controller;
+
+    void Awake()
+    {
+        mDefaultSpdToPlayer = speedToPlayer;
+    }
 
     void Start()
     {
-        mPlayerHitBox = GameObject.FindGameObjectWithTag(TagManager.sSingleton.hitboxTag).transform;
-
         mPlayer1Controller = GameManager.sSingleton.player1.GetComponent<PlayerController>();
 
         if (GameManager.sSingleton.player2 != null)
@@ -55,16 +60,36 @@ public class EnvironmentalObject : MonoBehaviour
             else deltaTime = Time.deltaTime;
 
             float step = speedToPlayer * deltaTime;
-            transform.position = Vector3.MoveTowards(transform.position, mPlayerHitBox.position, step);
+            transform.position = Vector3.MoveTowards(transform.position, mActivePlyHitBoxTrans.position, step);
         }
 	}
+
+    void OnDisable()
+    {
+        state = State.FREE_FALL;
+        speedToPlayer = mDefaultSpdToPlayer;
+    }
 
     public void SetPlayer(Transform playerHitBox) 
     { 
         if (state == State.MOVE_TOWARDS_PLAYER) return;
 
         state = State.MOVE_TOWARDS_PLAYER;
-        mPlayerHitBox = playerHitBox; 
+        mActivePlyHitBoxTrans = playerHitBox; 
+    }
+
+    public void SetTowardsRandomPlayer()
+    {
+        if (state == State.MOVE_TOWARDS_PLAYER) return;
+
+        state = State.MOVE_TOWARDS_PLAYER;
+        speedToPlayer = GameManager.sSingleton.pointPU_SpeedToPly;
+
+        int rand = -1;
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 1) rand = 0;
+        else rand = Random.Range(0, 2);
+
+        mActivePlyHitBoxTrans = EnvObjManager.sSingleton.GetPlyHitBoxTransList[rand];
     }
 
     void OnTriggerEnter2D(Collider2D other)

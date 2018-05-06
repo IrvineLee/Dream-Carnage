@@ -25,7 +25,7 @@ public class MagicCirlce : MonoBehaviour
         mMaxScale.y += addedToScale;
 
         sr = GetComponent<SpriteRenderer>();
-        FadeController.sSingleton.SetAlpha(ref sr, 0);
+        FadeController.sSingleton.SetAlpha(sr, 0);
         StartCoroutine(FadeIn(fadeInTime));
     }
 

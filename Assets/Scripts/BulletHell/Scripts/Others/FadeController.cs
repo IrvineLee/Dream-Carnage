@@ -15,7 +15,7 @@ public class FadeController : MonoBehaviour
         else _sSingleton = this;
     }
 
-    public void SetAlpha(ref SpriteRenderer sr, float val)
+    public void SetAlpha(SpriteRenderer sr, float val)
     {
         Color color = sr.color;
         color.a = val;

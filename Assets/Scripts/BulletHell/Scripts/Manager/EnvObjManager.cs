@@ -19,11 +19,24 @@ public class EnvObjManager : MonoBehaviour
     List<Transform> mRockList = new List<Transform>();
     List<Transform> mCrateList = new List<Transform>();
 
+    List<Transform> mPlyHitBoxTransList = new List<Transform>();
+
     void Awake()
     {
         if (_sSingleton != null && _sSingleton != this) Destroy(this.gameObject);
         else _sSingleton = this;
     }
+
+    void Start()
+    {
+        GameObject[] hitboxArray = GameObject.FindGameObjectsWithTag(TagManager.sSingleton.hitboxTag);
+        for (int i = 0; i < hitboxArray.Length; i++)
+        {
+            mPlyHitBoxTransList.Add(hitboxArray[i].transform);
+        }
+    }
+
+    public List<Transform> GetPlyHitBoxTransList { get { return mPlyHitBoxTransList; } }
 
     public Transform GetSmallPowerUp()
     {
@@ -121,9 +134,8 @@ public class EnvObjManager : MonoBehaviour
         currPoint.position = pos;
         currPoint.gameObject.SetActive(true);
 
-        //        EnvironmentalObject currObj = currPoint.GetComponent<EnvironmentalObject>();
-        //        currObj.state = EnvironmentalObject.State.MOVE_TOWARDS_PLAYER;
-        //        currObj.speedToPlayer = GameManager.sSingleton.pointPU_SpeedToPly;
+        EnvironmentalObject currObj = currPoint.GetComponent<EnvironmentalObject>();
+        currObj.SetTowardsRandomPlayer();
         scoreIndex++;
         if (smallPowerUpIndex + 1 > mSmallPowerUpList.Count - 1) smallPowerUpIndex = 0;
     }

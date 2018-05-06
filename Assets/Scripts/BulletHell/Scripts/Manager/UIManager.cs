@@ -73,8 +73,9 @@ public class UIManager : MonoBehaviour
         { 
             playerUIList.Add(new PlayerInfo()); 
 
-            Transform playerUI = player1_UI;
-            if (i == 1) playerUI = player2_UI;
+            Transform playerUI = null;
+            if (i == 0 && GameManager.sSingleton.IsThisPlayerActive(i + 1)) playerUI = player1_UI;
+            else if (i == 1 && GameManager.sSingleton.IsThisPlayerActive(i + 1)) playerUI = player2_UI;
 
             InitializeUI(playerUI, i);
         }
@@ -157,6 +158,8 @@ public class UIManager : MonoBehaviour
 
     public void UpdateLife(int playerNum, int currLife)
     {
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 1) playerNum -= 1;
+
         for (int i = 0; i < GameManager.sSingleton.plyMaxLife; i++)
         {
             Transform currTrans = playerUIList[playerNum - 1].lifePointTrans.GetChild(i);
@@ -170,23 +173,29 @@ public class UIManager : MonoBehaviour
 
     public void UpdatePower(int playerNum, float currPower, float maxPower)
     {
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 1) playerNum -= 1;
+
         string temp = currPower.ToString("F2") + " / " + maxPower.ToString("F2");
         playerUIList[playerNum - 1].powerLevel_UI.text = temp;
     }
 
-    public void UpdateScore(int player, int score)
+    public void UpdateScore(int playerNum, int score)
     {
-        PlayerInfo currPlayer = playerUIList[player - 1];
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 1) playerNum -= 1;
+
+        PlayerInfo currPlayer = playerUIList[playerNum - 1];
         currPlayer.toReachScore = score;
 
-        if(!currPlayer.isCoroutine) StartCoroutine(AddScoreSequence(player));
+        if(!currPlayer.isCoroutine) StartCoroutine(AddScoreSequence(playerNum));
     }
 
-    public void UpdateBomb(int player, int currBomb)
+    public void UpdateBomb(int playerNum, int currBomb)
     {
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 1) playerNum -= 1;
+
         for (int i = 0; i < GameManager.sSingleton.plyMaxBomb; i++)
         {
-            Transform currTrans = playerUIList[player - 1].bombTrans.GetChild(i);
+            Transform currTrans = playerUIList[playerNum - 1].bombTrans.GetChild(i);
 
             if (currBomb > 0) currTrans.gameObject.SetActive(true);
             else currTrans.gameObject.SetActive(false);
@@ -195,9 +204,11 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void UpdateLinkBar(int player, float linkVal)
+    public void UpdateLinkBar(int playerNum, float linkVal)
     {
-        PlayerInfo currPlayerInfo = playerUIList[player - 1];
+        if (GameManager.sSingleton.TotalNumOfPlayer() == 1) playerNum -= 1;
+
+        PlayerInfo currPlayerInfo = playerUIList[playerNum - 1];
         currPlayerInfo.linkBarImage.fillAmount = linkVal;
 
         if (linkVal >= 1) currPlayerInfo.percent_UI.text = "MAX";

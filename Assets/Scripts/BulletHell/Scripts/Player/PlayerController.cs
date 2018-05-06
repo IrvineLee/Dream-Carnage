@@ -23,6 +23,8 @@ public class PlayerController : MonoBehaviour
     public Transform soulTrans;
     public Transform spriteBoxTrans;
 
+    public ChildRotateAround fairy;
+
     enum State
     {
         NORMAL = 0,
@@ -186,6 +188,8 @@ public class PlayerController : MonoBehaviour
         if (powerLevel < maxPowerLevel)
         {
             powerLevel += val;
+            fairy.UpdateSprite(Mathf.FloorToInt(powerLevel));
+
             if (powerLevel > maxPowerLevel) powerLevel = maxPowerLevel;
             UIManager.sSingleton.UpdatePower(playerID, powerLevel, maxPowerLevel);
         }
@@ -207,6 +211,7 @@ public class PlayerController : MonoBehaviour
         moveSpeed = mDefaultMoveSpeed;
         mIsSpeedSlow = false;
         mIsInvinsible = true;
+        fairy.UpdateSprite(Mathf.FloorToInt(powerLevel));
 
         // Disable currnet sprite and activate soul transform.
         sr.enabled = false;
@@ -315,25 +320,28 @@ public class PlayerController : MonoBehaviour
                 bomb -= 1;
                 UIManager.sSingleton.UpdateBomb(playerID, bomb);
 
-				// The other player receiver during dual link ultimate.
-                if(BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.PLAYER_INPUT)
-				{
-					Debug.Log("Activate pause before shooting.");
-                    BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.ACTIVATE_PAUSE;
-                    mBombController.ActivatePotrait();
-				}
+                if (GameManager.sSingleton.TotalNumOfPlayer() == 2)
+                {
+                    // The other player receiver during dual link ultimate.
+                    if(BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.PLAYER_INPUT)
+                    {
+                        Debug.Log("Activate pause before shooting.");
+                        BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.ACTIVATE_PAUSE;
+                        mBombController.ActivatePotrait();
+                    }
 
-				// If both players gauge are full, stop time for input of second player.
-                if (linkValue >= 1 && mOtherPlayerController.linkValue >= 1 && BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) 
-				{
-					Debug.Log("Player started dual link bomb");
-					Time.timeScale = 0;
-                    mBombController.ActivatePotrait();
+                    // If both players gauge are full, stop time for input of second player.
+                    if (linkValue >= 1 && mOtherPlayerController.linkValue >= 1 && BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) 
+                    {
+                        Debug.Log("Player started dual link bomb");
+                        Time.timeScale = 0;
+                        mBombController.ActivatePotrait();
 
-					mIsWaitOtherInput = true;
-                    BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.PLAYER_INPUT;
-					StartCoroutine (WaitOtherResponseSequence (BombManager.sSingleton.bombDualLinkInputDur));
-				}
+                        mIsWaitOtherInput = true;
+                        BombManager.sSingleton.dualLinkState = BombManager.DualLinkState.PLAYER_INPUT;
+                        StartCoroutine (WaitOtherResponseSequence (BombManager.sSingleton.bombDualLinkInputDur));
+                    }
+                }
 
                 if(BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) mBombController.ActivateBomb();
 			}
