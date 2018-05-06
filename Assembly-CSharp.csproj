@@ -68,13 +68,13 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\TagManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\UIManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\CameraShake.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\ChildRotateAround.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\CoroutineUtil.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DeadZone.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\EnvironmentalObject.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\FadeController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\MessageController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\MessageOut.cs" />
-     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\RotateAround.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\BombController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerHitBox.cs" />
