@@ -58,6 +58,12 @@ public class BombManager : MonoBehaviour
         while(timer < bombDualLinkLaserDur)
         {
             timer += Time.deltaTime;
+
+            if (timer > bombDualLinkLaserDur) timer = bombDualLinkLaserDur;
+            float val = 1 - (timer/bombDualLinkLaserDur);
+            UIManager.sSingleton.UpdateLinkBar(1, val);
+            UIManager.sSingleton.UpdateLinkBar(2, val);
+
             yield return null;
         }
 
