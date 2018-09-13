@@ -49,6 +49,7 @@ public class DialogueData : ScriptableObject
 			public float moveOutTime;   // Only used when this character moves out of the scene. 
 
             public int moveOutID;
+			public bool isBoss;
 
             public Time()
             {
@@ -56,6 +57,7 @@ public class DialogueData : ScriptableObject
                 this.delayTime = 0;
                 this.reOpenTime = 0;
                 this.moveOutTime = 0;
+				this.isBoss = false;
             }
 		}
 

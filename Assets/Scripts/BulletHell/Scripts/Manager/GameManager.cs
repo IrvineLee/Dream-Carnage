@@ -371,7 +371,8 @@ public class GameManager : MonoBehaviour
 			isMoveDuringDialogue = true;
             if (boss.transform.position == bossDefaultPos.position)
             {
-                if (!CoroutineUtil.isCoroutine) StartCoroutine(CoroutineUtil.WaitFor(initalWaitAfterIntoScreen, () => {currState = State.DIALOGUE;}));
+				DialogueManager.sSingleton.HandleDialogue();
+//                if (!CoroutineUtil.isCoroutine) StartCoroutine(CoroutineUtil.WaitFor(initalWaitAfterIntoScreen, () => {currState = State.DIALOGUE;}));
             }
         }
         else if (currState == State.DIALOGUE)

@@ -32,6 +32,7 @@ public class DialogueDataCI : Editor
     List<bool> mIsReOpenList = new List<bool>();
     List<bool> mIsDisappearList = new List<bool>();
 
+	int bossIndex;
     bool mIsShowInfoPanel = false, mIsShowMarker = false;
 
     Color mIDColor, mSentenceBgColor, mAnswerBgColor, mResponseBgColor, mMessedUpColor;
@@ -151,6 +152,13 @@ public class DialogueDataCI : Editor
                 }
                 SetMessedUpMessage();
             }
+
+			if (currDialogue.time.isBoss)
+			{
+				GUI.color = Color.red;
+				EditorGUILayout.LabelField(new GUIContent("BOSS"), GUILayout.Width(50));
+				GUI.color = Color.white;
+			}
 
             // Persistent messedUp message.
             if (currCharName != CharacterData.Info.Character.NONE)
@@ -299,11 +307,17 @@ public class DialogueDataCI : Editor
                     EditorGUIUtility.labelWidth = 35.0f;
                     currDialogue.time.moveOutTime = EditorGUILayout.FloatField("Time", currDialogue.time.moveOutTime, GUILayout.Width(70));
 
-                    if (currDialogue.disappearMeth == DialogueData.Dialogue.AppearMethod.FADE_ON_CLICK)
-                        currDialogue.time.moveOutID = EditorGUILayout.IntField("ID", currDialogue.time.moveOutID, GUILayout.Width(70));
-                    EditorGUIUtility.labelWidth = 0;
+					if (currDialogue.disappearMeth == DialogueData.Dialogue.AppearMethod.FADE_ON_CLICK)
+						currDialogue.time.moveOutID = EditorGUILayout.IntField ("ID", currDialogue.time.moveOutID, GUILayout.Width (70));
+
+					EditorGUIUtility.labelWidth = 0;
                 }
             }
+			else 
+			{
+				currDialogue.disappearMeth = DialogueData.Dialogue.AppearMethod.FADE;
+				currDialogue.time.moveOutID = 0;
+			}
             GUILayout.EndHorizontal();
             // ------------------------------END HORIZONTAL------------------------------
 
@@ -371,6 +385,9 @@ public class DialogueDataCI : Editor
 				EditorGUILayout.LabelField("Others", GUILayout.Width(60.0f));
 				GUILayout.FlexibleSpace();	
 
+				EditorGUIUtility.labelWidth = 50.0f;
+				currDialogue.time.isBoss = EditorGUILayout.Toggle("IsBoss", currDialogue.time.isBoss, GUILayout.Width(100.0f));
+					
 				// Appear button.
                 if(currDialogue.character.name == CharacterData.Info.Character.NONE) GUI.enabled = false;
 				if (GUILayout.Button("App", GUILayout.Width(42))) 

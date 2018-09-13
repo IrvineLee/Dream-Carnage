@@ -116,7 +116,8 @@ public class EnemyManager : MonoBehaviour
                 if (mTimer > meetBossTimeList[GameManager.sSingleton.currStage - 1] && BombManager.sSingleton.dualLinkState != BombManager.DualLinkState.SHOOTING)
 				{
 					isBossAppeared = true;
-					GameManager.sSingleton.currState = GameManager.State.BOSS_MOVE_INTO_SCREEN;
+					GameManager.sSingleton.currState = GameManager.State.DIALOGUE;
+//					GameManager.sSingleton.currState = GameManager.State.BOSS_MOVE_INTO_SCREEN;
 
                     DisableAllEnemyOnScreen();
                     EnvObjManager.sSingleton.DisableAllDestroyableObj();

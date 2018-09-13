@@ -256,7 +256,7 @@ public class DialogueManager : MonoBehaviour
 
         if (mIsFadeOnClick)
         {
-            if (prevFadeOnClickDialogue.time.moveOutID == mCurrDialogueIndex || prevFadeOnClickDialogue.time.moveOutID == mCurrDialogueIndex)
+			if (prevFadeOnClickDialogue.time.moveOutID == mCurrDialogueIndex)
             {
                 bool isLeft = prevFadeOnClickDialogue.isLeft;
 
@@ -274,6 +274,11 @@ public class DialogueManager : MonoBehaviour
         }
 
         DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
+
+		if (currDialogue.time.isBoss) 
+		{
+			GameManager.sSingleton.currState = GameManager.State.BOSS_MOVE_INTO_SCREEN;
+		}
 
         // Update current character state.
         if (currDialogue.isLeft) mActiveCharacterSpriteState = ActiveCharacterSpriteState.LEFT;
@@ -308,7 +313,7 @@ public class DialogueManager : MonoBehaviour
                 if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT) characterSpriteList[0].spriteState = CharacterSprite.SpriteState.IN_SCREEN;
                 else characterSpriteList[1].spriteState = CharacterSprite.SpriteState.IN_SCREEN;
             }
-            else HandleDialogueText(currDialogue);
+			else HandleDialogueText(currDialogue);
         }
     }
         
