@@ -1,22 +1,31 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEditor;
 
 public class BulletMove : MonoBehaviour 
 {
     AttackPattern.Properties properties = new AttackPattern.Properties();
     List<AttackPattern.UpdateSpeed> newChangeList = new List<AttackPattern.UpdateSpeed>();
 
-    Vector2 mCurrPos;
+    BulletManager.GroupIndex groupType = BulletManager.GroupIndex.PLAYER_MAIN;
+
+    Vector2 mStartPos;
     int mCurrChangeIndex = 0;
     float mAngle = 0, mChangeSpeedTimer = 0;
+    bool mIsPiercing = false;
+
     IEnumerator currCo;
+    Transform mToTarget;
+
+    void OnEnable()
+    {
+        if (properties.ownerType != AttackPattern.OwnerType.PLAYER && BulletManager.sSingleton.IsDisableSpawnBullet) gameObject.SetActive(false);
+    }
 
 	void Update () 
     {
         float deltaTime = 0;
-        if (properties.isPlayer && BombManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
+        if (properties.ownerType == AttackPattern.OwnerType.PLAYER && BombManager.sSingleton.isTimeStopBomb) deltaTime = Time.unscaledDeltaTime;
         else deltaTime = Time.deltaTime;
 
         HandleSpeedChange();
@@ -28,46 +37,100 @@ public class BulletMove : MonoBehaviour
         }
         else if (currTemplate == AttackPattern.Template.DOUBLE_SINE_WAVE)
         {
-            mCurrPos += properties.direction * properties.speed * deltaTime;
-            transform.position = (Vector3)mCurrPos + (Vector3)properties.curveAxis * Mathf.Sin (mAngle * properties.frequency) * (properties.magnitude + (mAngle * properties.magExpandMult));
+            mStartPos += properties.direction * properties.speed * deltaTime;
+            transform.position = (Vector3)mStartPos + (Vector3)properties.curveAxis * Mathf.Sin (mAngle * properties.frequency) * (properties.magnitude + (mAngle * properties.magExpandMult));
 
             mAngle += deltaTime;
             if (mAngle >= (Mathf.PI * 2)) mAngle = 0;
+        }
+        else if (currTemplate == AttackPattern.Template.SHOCK_REPEL_AND_TRAP_LASER)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, mToTarget.position, properties.speed * deltaTime);
+
+            Vector3 dir = mToTarget.position - transform.position;
+            float bulletAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+            transform.rotation = Quaternion.AngleAxis(-90 + bulletAngle, Vector3.forward);
         }
 	}
 
     public void SetBaseProperties(AttackPattern.Properties properties) 
     { 
-        this.properties.isPlayer = properties.isPlayer; 
+        this.properties.ownerType = properties.ownerType; 
         this.properties.template = properties.template; 
+        this.properties.isAlternateFire = properties.isAlternateFire; 
+        this.properties.isMagnum = properties.isMagnum; 
         this.properties.damage = properties.damage; 
         this.properties.speed = properties.speed; 
-        this.properties.isMainPiercing = properties.isMainPiercing; 
-        this.properties.isSecondaryPiercing = properties.isSecondaryPiercing; 
         this.properties.frequency = properties.frequency; 
         this.properties.magnitude = properties.magnitude; 
-        this.properties.magExpandMult = properties.magExpandMult; 
+        this.properties.magExpandMult = properties.magExpandMult;
+
+        this.properties.giveStatRepelDur = properties.giveStatRepelDur;
+        this.properties.slowValue = properties.slowValue;
+        this.properties.repelValue = properties.repelValue;
+
+        this.properties.trapDelayExpand = properties.trapDelayExpand;
+        this.properties.trapExpandDur = properties.trapExpandDur;
+        this.properties.trapExpandSpd = properties.trapExpandSpd;
+        this.properties.trapRotateSpd = properties.trapRotateSpd;
+        this.properties.trapMoveSpd = properties.trapMoveSpd;
+        this.properties.trapDelayShrink = properties.trapDelayShrink;
+		this.properties.trapShrinkSpd = properties.trapShrinkSpd;
+		this.properties.trapFadeSpd = properties.trapFadeSpd;
     }
 
-    public void SetProperties(AttackPattern.Template template, int damage, float speed)
+    public void SetProperties(AttackPattern.Template template, float damage, float speed)
     {
         this.properties.template = template;
-        this.properties.damage = damage; 
+        this.properties.damage = damage;
         this.properties.speed = speed; 
     }
 
-    public void SetDirection(Vector2 direction) { properties.direction = direction; }
-    public void SetNewBulletSpeed(List<AttackPattern.UpdateSpeed> newList) { newChangeList = newList; }
+    public void SetIsPiercing(bool isPierce) { mIsPiercing = isPierce; }
+    public bool GetIsPiercing() { return mIsPiercing; }
+
+    public void SetPlayer() { this.properties.ownerType = AttackPattern.OwnerType.PLAYER; }
+    public void SetShockRepelTarget(Transform target) 
+    { 
+        mToTarget = target;
+        this.properties.damage = 0;
+    }
+
+    public void SetDirection(Vector2 dir) 
+    { 
+        properties.direction = dir; 
+        transform.rotation = Quaternion.identity;
+
+        // Change the rotation of bullet to match direction.
+        float bulletAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.AngleAxis(-90 + bulletAngle, Vector3.forward);
+    }
+
+    public void SetNewBulletSpeed(List<AttackPattern.UpdateSpeed> newList) 
+    {
+        mCurrChangeIndex = 0;
+        mChangeSpeedTimer = 0;
+        newChangeList = newList; 
+    }
+
     public void SetCurveAxis(Vector2 curveAxis) 
     {
-        mCurrPos = (Vector2) transform.position;
+        mStartPos = (Vector2) transform.position;
         mAngle = 0;
         properties.curveAxis = curveAxis; 
     }
 
-    public int GetBulletDamage { get { return properties.damage; } }
-    public bool IsMainPiercing { get { return properties.isMainPiercing; } }
-    public bool IsSecondaryPiercing { get { return properties.isSecondaryPiercing; } }
+    public BulletManager.GroupIndex BulletType 
+    { 
+        get { return groupType; } 
+        set { groupType = value; }
+    }
+
+    public AttackPattern.Properties GetAttackProperties { get { return properties; } }
+    public AttackPattern.Template GetTemplate { get { return properties.template; } }
+    public bool GetIsMagnum { get { return properties.isMagnum; } }
+    public float GetBulletDamage { get { return properties.damage; } }
+    public float GetStatRepelDur { get { return properties.giveStatRepelDur; } }
 
     void HandleSpeedChange()
     {

@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{CD5CBC4F-CC74-5969-94CD-A0B6CE8A8AC2}</ProjectGuid>
+    <ProjectGuid>{59EB7163-9E82-EE64-A9E6-9BBC02D6F6A7}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp-Editor</AssemblyName>
@@ -46,21 +46,37 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX Easy Editor\Editor\CFXEasyEditor.cs" />
+     <Compile Include="Assets\ParticleEffects\LightningBolt\Editor\LightningBoltEditor.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Dissolve Shader by Moonflower Carnivore\Shaders\unity5\Editor\CustomMaterialEditor.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Dissolve Shader by Moonflower Carnivore\Shaders\unity5\Editor\Shader_softrim_dissolve.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\AttackPatternCI.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\Drawer\HideInSubClassAttributeDrawer.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\Drawer\ReadOnlyAttributeDrawer.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\EnemyBaseCI.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\EnemyMovementCI.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\EnvironmentalObjectCI.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\PlayerNEnemyPrefabDataCI.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\CustomInspector\SecondaryAttackTypeCI.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\ScriptableObject\BulletPrefabDataAsset.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\ScriptableObject\CharacterInGameImageAsset.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Editor\ScriptableObject\EnvObjPrefabDataAsset.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Editor\ScriptableObject\PlayerNEnemyPrefabDataAsset.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Editor\CustomInspector\DialogueDataCI.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Editor\ScriptableObject\CharacterDataAsset.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Editor\ScriptableObject\DialogueDataAsset.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Editor\ScriptableObject\ScriptableObjectUtility.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Editor\Window\TexturePickerEditor.cs" />
+     <Compile Include="Assets\Seen\Fork Particle Variety Pack FX\Assets\Editor\PSBImporter.cs" />
+     <Compile Include="Assets\Seen\Fork Particle Variety Pack FX\Assets\Editor\PSBPostprocessor.cs" />
+     <None Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Shaders\Particles Additive Intensify.shader" />
+     <None Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Shaders\CFX3 Multiply Color.shader" />
+     <None Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Shaders\CFXM_MobileParticleAdd_Alpha8.shader" />
+     <None Include="Assets\ParticleEffects\Almgp_particle_vol_1\shaders\multypower_particle.shader" />
      <None Include="Assets\Shader\DiffuseNotEqualOne.shader" />
      <None Include="Assets\Shader\MaskOneZLess.shader" />
  <Reference Include="Facebook.Unity.Settings">
- <HintPath>C:/Users/Owner/Desktop/2018 Build Games/Dream Carnage/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
+ <HintPath>C:/Users/Owner/Desktop/Dream Carnage v1.77/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
  </Reference>
  <Reference Include="UnityEditor.Advertisements">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/Advertisements/Editor/UnityEditor.Advertisements.dll</HintPath>
@@ -119,10 +135,16 @@
  <Reference Include="UnityEditor.WindowsStandalone.Extensions">
  <HintPath>C:/Program Files/Unity/Editor/Data/PlaybackEngines/windowsstandalonesupport/UnityEditor.WindowsStandalone.Extensions.dll</HintPath>
  </Reference>
+ <Reference Include="JMOAssets">
+ <HintPath>C:/Users/Owner/Desktop/Dream Carnage v1.77/Assets/ParticleEffects/JMO Assets/Editor/JMOAssets.dll</HintPath>
+ </Reference>
+ <Reference Include="JMOAssets_CartoonFXFreeWelcome">
+ <HintPath>C:/Users/Owner/Desktop/Dream Carnage v1.77/Assets/ParticleEffects/JMO Assets/Editor/JMOAssets_CartoonFXFreeWelcome.dll</HintPath>
+ </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Assembly-CSharp.csproj">
-      <Project>{8A4C4515-E1A3-36C6-10F6-42E431399F2E}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
+      <Project>{262F2C6E-0A2C-1961-D72B-CCC98826323E}</Project>      <Name>Assembly-CSharp</Name>    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

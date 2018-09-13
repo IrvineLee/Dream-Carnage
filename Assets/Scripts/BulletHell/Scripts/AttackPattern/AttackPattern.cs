@@ -6,11 +6,29 @@ using System;
 public class AttackPattern : MonoBehaviour 
 {
     // Base stats.
-    public bool isPlayer = false;
+    public enum OwnerType
+    {
+        PLAYER = 0,
+        ENEMY,
+    }
+    public OwnerType ownerType = OwnerType.ENEMY;
+
     public Transform owner;
-    public int mainBulletDamage = 1, secondaryBulletDamage = 1;
+    public float mainBulletDamage = 1, secondaryBulletDamage = 1, hpPercentSkipAtk = 100;
     public float mainBulletSpeed = 5, secondaryBulletSpeed = 5, shootDelay = 0.2f;
-    public bool isMainPiercing = false, isSecondaryPiercing = false;
+    public float pauseEverySec = 8, pauseDur = 1;
+    public bool isMainPiercing = false, isSecondaryPiercing = false, isAlternateFire = false, isMagnum = false, isOneStartPoint = false;
+    public float alternateFireOffset = 1;
+	public float magnumMarkedDuration = 1.5f;
+
+    // The next type of attack within duration. For boss only.
+    public int attackNum, numOfAtkBefIncrease;
+    public bool isIncreaseAtkNum;
+    public static int currAtkNum;
+
+    // Base laser stats.
+    public float damagePerFrame = 0.1f, expandSpeed = 7, expandTillXScale = 3.5f;
+    public bool isDestroyBullets = false;
 
     // Bullet stats.
     public BulletPrefabData bulletPrefabData;
@@ -18,13 +36,28 @@ public class AttackPattern : MonoBehaviour
 
     // Player stats.
     public Vector2 bulletDirection, mainBulletOffset, secondaryBulletOffset;
-    public float secondaryX_OffsetBetBul;
 
     // Enemy stats.
-    public float duration = 10, onceStartDelay;
-    public bool isShowDuration = false, isPotraitShow = false;
+    public enum Target
+    {
+        PLAYER_1 = 0,
+        PLAYER_2,
+        RANDOM
+    }
+    public Target target = Target.PLAYER_1;
+    public float duration = 10, onceStartDelay, potraitDelay;
+    public bool isShowDuration = false, isPotraitShow = false, isShootPlayer = true, isFollowPlayer = true, isDirectionFromOwner = false;
     public Sprite charSprite, spellCardSprite;
+    public Vector2 shootDirection;
     //    public bool isDisBulletAftDone = false;
+
+    public enum BulletType
+    {
+        PROJECTILE = 0,
+		PROJECTILE_LOCK_ON,
+        LASER
+    }
+    public BulletType bulletType = BulletType.PROJECTILE;
 
     // Pattern template.
     public enum Template
@@ -33,24 +66,18 @@ public class AttackPattern : MonoBehaviour
         ANGLE_SHOT,
         SHOOT_AROUND_IN_CIRCLE,
         DOUBLE_SINE_WAVE,
+        SHOCK_REPEL_AND_TRAP_LASER
     }
     public Template template = Template.SINGLE_SHOT;
-
-    public enum SecondaryMoveTemplate
-    {
-        FROM_BACK = 0,
-        CIRCLE_AROUND_PLAYER,
-    }
-    public SecondaryMoveTemplate secondaryMoveTemplate = SecondaryMoveTemplate.FROM_BACK;
 
     // Shoot at player values.
     public float initialSpacing;
     public int viewAngle = 90, segments;
 
     // Shoot around in circle values.
-    public bool isClockwise = true;
+    public bool isClockwise = true, isResetAngAftPause;
     public float distance, startTurnDelay, turningRate, increaseTR, increaseTRTime, maxTR;
-    public float xOffset, yOffset;
+    public float xOffset, yOffset, angleStart, angleAfterPause;
 
     [System.Serializable]
     public class UpdateSpeed
@@ -63,15 +90,23 @@ public class AttackPattern : MonoBehaviour
     // Sine wave values.
     public Vector2 offsetPosition;
     public float frequency, magnitude, magExpandMult, sineWaveBullets, cooldown;
+    public bool isGetNewTargetAftPause = false;
+
+    // Shock repel values.
+    public float giveStatRepelDur = 2.5f, slowValue = 1.0f, repelValue = 90.0f;
+	public float trapDelayExpand = 2.0f, trapExpandDur = 5.0f, trapExpandSpd = 1.5f;
+	public float trapRotateSpd = 3, trapMoveSpd = 1.5f, trapDelayShrink, trapShrinkSpd = 1, trapFadeSpd = 2;
 
     // Values that are to be sent over to individual bullets.
     public class Properties
     {
         // Fixed value.
-        public bool isPlayer, isMainPiercing, isSecondaryPiercing;
+        public OwnerType ownerType;
         public Template template;
-        public int damage;
-        public float speed, frequency, magnitude, magExpandMult;
+        public float damage, speed, frequency, magnitude, magExpandMult;
+        public float giveStatRepelDur, slowValue, repelValue;
+		public float trapDelayExpand, trapExpandDur, trapExpandSpd, trapRotateSpd, trapMoveSpd, trapDelayShrink, trapShrinkSpd, trapFadeSpd;
+        public bool isAlternateFire, isMagnum;
 
         // Values that will be changed real-time.
         public Vector2 direction;
@@ -79,21 +114,34 @@ public class AttackPattern : MonoBehaviour
 
         public Properties()
         {
-            isPlayer = isMainPiercing = isSecondaryPiercing = false;
+            ownerType = OwnerType.ENEMY;
             template = Template.SINGLE_SHOT;
-            damage = 0;
-            speed = frequency = magnitude = magExpandMult = 0;
+            isAlternateFire = isMagnum = false;
+            damage = speed = frequency = magnitude = magExpandMult = 0;
+			giveStatRepelDur = slowValue = repelValue = trapDelayExpand = trapExpandDur = trapExpandSpd = trapMoveSpd = trapDelayShrink = trapShrinkSpd = trapFadeSpd = 0;
             direction = curveAxis = Vector2.zero;
         }
     }
     Properties properties = new Properties();
 
-    float mTimer, mAngle, mIncreaseTRTimer, mSlowDownTimer;
+    public SecondaryAttackType secondaryAttackType;
+    public WithinRange withinRange;
+
+	public enum AlternateFire
+	{
+		LEFT = 0,
+		RIGHT
+	}
+	AlternateFire alternateFire = AlternateFire.LEFT;
+
+    Transform mTarget;
+    Vector3 mStartPos = Vector3.zero;
+    Vector2 mSavedDir = Vector2.zero;
+    float mPauseTimer, mTimer, mAngle, mIncreaseTRTimer, mPotraitTimer;
     bool mIsCoroutine = false;
 
-    List<IEnumerator> mAttackCoList = new List<IEnumerator>();
+	List<IEnumerator> mAttackCoList = new List<IEnumerator>();
     PlayerController mPlayerController;
-    SecondaryAttackType mSecondaryAttackType;
 
     // Used for testing purposes in editor-mode.
     Template mSavedTemplateList;
@@ -104,18 +152,23 @@ public class AttackPattern : MonoBehaviour
         GetNewestSameBulletList();
         UpdateProperties();
         mSavedTemplateList = template;
+
+        if (owner == null) owner = transform.parent;
+        GameManager.sSingleton.MagnumMarkedDuration = magnumMarkedDuration;
+
+        if (target == Target.PLAYER_1 && GameManager.sSingleton.IsThisPlayerActive(1)) mTarget = GameManager.sSingleton.player1;
+        else if (target == Target.PLAYER_2 && GameManager.sSingleton.IsThisPlayerActive(2)) mTarget = GameManager.sSingleton.player2;
     }
 
     void GetNewestSameBulletList()
     {
         savedMainBulletIndex = mainBulletIndex;
 
-        if (isPlayer)
+        if (ownerType == OwnerType.PLAYER)
         {
             savedSecondaryBulletIndex = secondaryBulletIndex;
 
             mPlayerController = GetComponent<PlayerController>();
-            mSecondaryAttackType = GetComponent<SecondaryAttackType>();
 
             string p1Tag = TagManager.sSingleton.player1Tag;
             string p2Tag = TagManager.sSingleton.player2Tag;
@@ -129,6 +182,13 @@ public class AttackPattern : MonoBehaviour
             {
                 BulletManager.sSingleton.SetBulletTag(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex, TagManager.sSingleton.player2BulletTag);
                 BulletManager.sSingleton.SetBulletTag(BulletManager.GroupIndex.PLAYER_SECONDARY, secondaryBulletIndex, TagManager.sSingleton.player2BulletTag);
+            }
+
+            if (bulletType == BulletType.LASER)
+            {
+                Transform prefab = bulletPrefabData.plyLaserTransNoCacheList[secondaryBulletIndex];
+                secondaryAttackType.SetIsPiercing(isSecondaryPiercing);
+                secondaryAttackType.SetLaserProperties(prefab, damagePerFrame, expandSpeed, expandTillXScale, isDestroyBullets);
             }
         }
     }
@@ -156,22 +216,83 @@ public class AttackPattern : MonoBehaviour
         }
     }
 
-    public void StartAttack(Transform target, Action doLast)
+	public void SetAttackPattern(AttackPattern ap)
+	{
+        ownerType = ap.ownerType;
+		mainBulletDamage = ap.mainBulletDamage; secondaryBulletDamage = ap.secondaryBulletDamage; hpPercentSkipAtk = ap.hpPercentSkipAtk;
+		mainBulletSpeed = ap.mainBulletSpeed; secondaryBulletSpeed = ap.secondaryBulletSpeed; shootDelay = ap.shootDelay;
+		isMainPiercing = ap.isMainPiercing; isSecondaryPiercing = ap.isSecondaryPiercing;
+        pauseEverySec = ap.pauseEverySec; pauseDur = ap.pauseDur;
+
+        mainBulletIndex = ap.mainBulletIndex; secondaryBulletIndex = ap.secondaryBulletIndex;
+
+        attackNum = ap.attackNum;
+        isIncreaseAtkNum = ap.isIncreaseAtkNum;
+        numOfAtkBefIncrease = ap.numOfAtkBefIncrease;
+        isOneStartPoint = ap.isOneStartPoint;
+        isResetAngAftPause = ap.isResetAngAftPause;
+        angleStart = ap.angleStart;
+        angleAfterPause = ap.angleAfterPause;
+
+		// Base laser stats.
+		damagePerFrame = ap.damagePerFrame; expandSpeed = ap.expandSpeed; expandTillXScale = ap.expandTillXScale;
+		isDestroyBullets = ap.isDestroyBullets;
+
+		// Enemy stats.
+		target = ap.target;
+		duration = ap.duration; onceStartDelay = ap.onceStartDelay;
+        isShowDuration = ap.isShowDuration; isPotraitShow = ap.isPotraitShow; isShootPlayer = ap.isShootPlayer; isFollowPlayer = ap.isFollowPlayer;
+
+		bulletType = ap.bulletType;
+		template = ap.template;
+
+		// Shoot at player values.
+		initialSpacing = ap.initialSpacing;
+        viewAngle = ap.viewAngle; segments = ap.segments;
+
+		// Shoot around in circle values.
+		isClockwise = ap.isClockwise;
+		distance = ap.distance; startTurnDelay = ap.startTurnDelay; turningRate = ap.turningRate; increaseTR = ap.increaseTR; increaseTRTime = ap.increaseTRTime; maxTR = ap.maxTR;
+		xOffset = ap.xOffset; yOffset = ap.yOffset;
+
+		speedChangeList = ap.speedChangeList;
+
+		// Sine wave values.
+		offsetPosition = ap.offsetPosition;
+		frequency = ap.frequency; magnitude = ap.magnitude; magExpandMult = ap.magExpandMult; sineWaveBullets = ap.sineWaveBullets; cooldown = ap.cooldown;
+
+		// Shock repel values.
+		giveStatRepelDur = ap.giveStatRepelDur; slowValue = ap.slowValue; repelValue = ap.repelValue;
+		trapDelayExpand = ap.trapDelayExpand; trapExpandDur = ap.trapExpandDur; trapExpandSpd = ap.trapExpandSpd;
+		trapRotateSpd = ap.trapRotateSpd; trapMoveSpd = ap.trapMoveSpd; trapDelayShrink = ap.trapDelayShrink; trapShrinkSpd = ap.trapShrinkSpd; trapFadeSpd = ap.trapFadeSpd;
+	}
+
+    public AlternateFire GetCurrAlternateFire { get { return alternateFire; } }
+
+    public void StartAttack(Action doLast)
     {
         if (!mIsCoroutine)
         {
-            if (isPotraitShow)
-            {
-                if (charSprite != null) owner.GetComponent<EnemyBase>().EnableMagicCircle();
-                if (spellCardSprite != null) PotraitShowManager.sSingleton.RunShowPotrait(charSprite, spellCardSprite);
-            }
+            if (isPotraitShow) StartCoroutine(PlayPotrait(onceStartDelay));
             if (isShowDuration) UIManager.sSingleton.ActivateBossTimer(duration);
+
+            Transform targetTrans = null;
+            if (isShootPlayer)
+            {
+                if (target == Target.PLAYER_1 && GameManager.sSingleton.IsThisPlayerActive(1)) targetTrans = GameManager.sSingleton.player1;
+                else if (target == Target.PLAYER_2 && GameManager.sSingleton.IsThisPlayerActive(2)) targetTrans = GameManager.sSingleton.player2;
+                else if (GameManager.sSingleton.IsThisPlayerActive(1) && !GameManager.sSingleton.IsThisPlayerActive(2)) targetTrans = GameManager.sSingleton.player1;
+				else if (GameManager.sSingleton.IsThisPlayerActive(2) && !GameManager.sSingleton.IsThisPlayerActive(1)) targetTrans = GameManager.sSingleton.player2;
+                else targetTrans = GameManager.sSingleton.GetRandomPlayer();
+            }
 
             if (template == AttackPattern.Template.SINGLE_SHOT || template == AttackPattern.Template.ANGLE_SHOT ||
                 template == AttackPattern.Template.SHOOT_AROUND_IN_CIRCLE)
-                mAttackCoList.Add(Shoot(target, doLast));
+                mAttackCoList.Add(Shoot(targetTrans, doLast));
             else if (template == AttackPattern.Template.DOUBLE_SINE_WAVE)
-                mAttackCoList = DoubleSineWaveShot(target, doLast);
+                mAttackCoList = DoubleSineWaveShot(targetTrans, doLast);
+            else if (template == Template.SHOCK_REPEL_AND_TRAP_LASER) 
+                mAttackCoList.Add(ShootOnceOnly(doLast));
 
             for (int i = 0; i < mAttackCoList.Count; i++)
             {
@@ -182,8 +303,8 @@ public class AttackPattern : MonoBehaviour
 
     public void PrimaryWeaponShoot()
     {
-        if (template == Template.SINGLE_SHOT) ShootSingleShot(bulletDirection);
-        else if (template == AttackPattern.Template.ANGLE_SHOT) ShootAngleShot(bulletDirection);
+        if (template == Template.SINGLE_SHOT) ShootSingleShot(null);
+        else if (template == AttackPattern.Template.ANGLE_SHOT) ShootAngleShot(null);
         else if (template == AttackPattern.Template.SHOOT_AROUND_IN_CIRCLE) ShootAroundInCirlce();
         else if (template == AttackPattern.Template.DOUBLE_SINE_WAVE)
         {
@@ -195,29 +316,89 @@ public class AttackPattern : MonoBehaviour
     public void SecondaryWeaponShoot()
     {
         int numOfMissle = Mathf.FloorToInt(mPlayerController.powerLevel);
-
-        List<Vector3> posList = new List<Vector3>();
-        if (secondaryMoveTemplate == SecondaryMoveTemplate.FROM_BACK)
-            posList = mSecondaryAttackType.GetPos_FROM_BACK(numOfMissle, secondaryBulletOffset, secondaryX_OffsetBetBul);
-        else if (secondaryMoveTemplate == SecondaryMoveTemplate.CIRCLE_AROUND_PLAYER)
-            posList = mSecondaryAttackType.GetPos_CIRCLE_AROUND(numOfMissle);
+        List<Vector3> fairyPosList = secondaryAttackType.GetAllFairyPos();
 
         for (int i = 0; i < numOfMissle; i++)
         {
-            Transform currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_SECONDARY, secondaryBulletIndex);
-            currBullet.position = posList[i];
-            currBullet.gameObject.SetActive(true);
+            if (bulletType == BulletType.PROJECTILE || bulletType == BulletType.PROJECTILE_LOCK_ON)
+            {
+                Transform currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_SECONDARY, secondaryBulletIndex);
+                Vector3 pos = fairyPosList[i];
+                pos.x += secondaryBulletOffset.x;
+                pos.y += secondaryBulletOffset.y;
+                currBullet.position = pos;
+                currBullet.gameObject.SetActive(true);
 
-            BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
-            bulletMove.SetBaseProperties(properties);
-            bulletMove.SetDirection(bulletDirection);
-            bulletMove.SetProperties(Template.SINGLE_SHOT, secondaryBulletDamage, secondaryBulletSpeed);
+                BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
+                bulletMove.SetBaseProperties(properties);
+                bulletMove.SetIsPiercing(isSecondaryPiercing);
+                bulletMove.SetProperties(Template.SINGLE_SHOT, secondaryBulletDamage, secondaryBulletSpeed);
+                bulletMove.BulletType = BulletManager.GroupIndex.PLAYER_SECONDARY;
+
+                if (bulletType == BulletType.PROJECTILE)
+                    bulletMove.SetDirection(bulletDirection);
+                else if (bulletType == BulletType.PROJECTILE_LOCK_ON)
+                {
+                    Transform enemy = null;
+
+                    if (!mPlayerController.IsShiftPressed) enemy = withinRange.GetClosestEnemy();
+                    else if (mPlayerController.IsShiftPressed) enemy = withinRange.GetFurthestEnemy();
+
+                    if (enemy == null) bulletMove.SetDirection(bulletDirection);
+                    else
+                    {
+                        Vector2 dir = enemy.position - fairyPosList[i];
+
+                        int rand = UnityEngine.Random.Range(0, 2);
+                        if (rand == 0) dir.x += UnityEngine.Random.Range(0.0f, 0.1f);
+                        else dir.x -= UnityEngine.Random.Range(0.0f, 0.1f);
+
+                        bulletMove.SetDirection(dir.normalized);
+                    }
+                }
+            }
+            else if (bulletType == BulletType.LASER)
+                secondaryAttackType.ActivateSmallLaser(mPlayerController.playerID);
         }
     }
 
-    IEnumerator Shoot(Transform targetTrans, Action doLast)
+    public void StopCoroutine()
     {
+        for (int j = 0; j < mAttackCoList.Count; j++)
+        {
+            StopCoroutine(mAttackCoList[j]);
+        }
+        mIsCoroutine = false;
+        mAttackCoList.Clear();
+    }
+
+    IEnumerator PlayPotrait(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        owner.GetComponent<EnemyBase>().EnableMagicCircle();
+        if (spellCardSprite != null) PotraitShowManager.sSingleton.RunShowPotrait(charSprite, spellCardSprite);
+
+        if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayS1BossFinalAtk();
+    }
+
+    IEnumerator ShootOnceOnly(Action doLast)
+    {
+        bool isShot = false;
         mIsCoroutine = true;
+
+        int totalPlayers = GameManager.sSingleton.TotalNumOfPlayer();
+
+        Transform targetTrans = null, nextTrans = null;
+        if (totalPlayers > 1)
+        {
+            targetTrans = GameManager.sSingleton.GetRandomPlayer();
+
+            if (targetTrans.tag == TagManager.sSingleton.player1Tag) nextTrans = GameManager.sSingleton.player2;
+            else nextTrans = GameManager.sSingleton.player1;
+        }
+
+        float startDelay = onceStartDelay;
         while (mTimer < duration)
         {
             while (onceStartDelay > 0)
@@ -225,17 +406,98 @@ public class AttackPattern : MonoBehaviour
                 if (!BombManager.sSingleton.isTimeStopBomb)
                 {
                     mTimer += Time.deltaTime;
-                    onceStartDelay -= Time.deltaTime;
+                    startDelay -= Time.deltaTime;
                 }
                 yield return null;
             }
 
             if (!BulletManager.sSingleton.IsDisableSpawnBullet)
             {
-                if(template == Template.SINGLE_SHOT) ShootSingleShot(targetTrans.position);
-                else if(template == Template.ANGLE_SHOT) ShootAngleShot(targetTrans.position);
-                else if(template == Template.SHOOT_AROUND_IN_CIRCLE) ShootAroundInCirlce();
+                while (pauseEverySec != 0 && mPauseTimer >= pauseEverySec)
+                {
+                    mPauseTimer = 0;
+                    yield return new WaitForSeconds(pauseDur);
+                }
+
+                if (template == Template.SHOCK_REPEL_AND_TRAP_LASER && !isShot)
+                {
+                    ShootSingleShot(targetTrans);
+                    isShot = true;
+                }
             }
+            else
+            {
+                // Set remaining player as target.
+                isShot = false;
+                targetTrans = nextTrans;
+
+                if (nextTrans.tag == TagManager.sSingleton.player1Tag) nextTrans = GameManager.sSingleton.player2;
+                else nextTrans = GameManager.sSingleton.player1;
+            }
+
+            mTimer += shootDelay + Time.deltaTime;
+            mPauseTimer += shootDelay + Time.deltaTime;
+
+            yield return new WaitForSeconds(shootDelay);
+        }
+        mIsCoroutine = false;
+    }
+
+    IEnumerator Shoot(Transform targetTrans, Action doLast)
+    {
+        mIsCoroutine = true;
+        if (isOneStartPoint) mStartPos = owner.position;
+
+        int countAtkNum = 0;
+        float startDelay = onceStartDelay;
+        mAngle = angleStart;
+
+        while (mTimer < duration)
+        {
+            if (attackNum == currAtkNum)
+            {
+                while (startDelay > 0)
+                {
+                    if (!BombManager.sSingleton.isTimeStopBomb)
+                    {
+                        mTimer += Time.deltaTime;
+                        startDelay -= Time.deltaTime;
+                    }
+                    yield return null;
+                    if (isOneStartPoint) mStartPos = owner.position;
+                }
+
+                while (pauseEverySec != 0 && mPauseTimer >= pauseEverySec)
+                {
+                    mPauseTimer = 0;
+                    mTimer += pauseDur;
+
+                    if (isResetAngAftPause) mAngle = angleAfterPause;
+                    if (isIncreaseAtkNum && attackNum == currAtkNum)
+                    {
+                        countAtkNum++;
+                        if (countAtkNum == numOfAtkBefIncrease)
+                        {
+                            currAtkNum++;
+                            countAtkNum = 0;
+                        }
+                    }
+
+                    yield return new WaitForSeconds(pauseDur);
+                    if (isOneStartPoint) mStartPos = owner.position;
+                }
+
+//                && (mTimer + pauseEverySec) <= duration
+                if (attackNum == currAtkNum)
+                {   
+                    if(template == Template.SINGLE_SHOT) ShootSingleShot(targetTrans);
+                    else if(template == Template.ANGLE_SHOT) ShootAngleShot(targetTrans);
+                    else if(template == Template.SHOOT_AROUND_IN_CIRCLE) ShootAroundInCirlce();
+
+                    mPauseTimer += shootDelay + Time.deltaTime;
+                }
+            }
+            else startDelay = onceStartDelay;
 
             mTimer += shootDelay + Time.deltaTime;
             yield return new WaitForSeconds(shootDelay);
@@ -247,39 +509,73 @@ public class AttackPattern : MonoBehaviour
     List<IEnumerator> DoubleSineWaveShot(Transform targetTrans, Action doLast)
     {
         List<IEnumerator> ienumeratorList = new List<IEnumerator>();
-        ienumeratorList.Add(SineWaveShootRoutine(targetTrans, true, () => {} )); 
-        ienumeratorList.Add(SineWaveShootRoutine(targetTrans, false, doLast)); 
+        mStartPos = owner.position;
+        ienumeratorList.Add(SineWaveShootRoutine(0, targetTrans, true, () => {} )); 
+        ienumeratorList.Add(SineWaveShootRoutine(1, targetTrans, false, doLast)); 
         return ienumeratorList;
     }
 
-    IEnumerator SineWaveShootRoutine(Transform targetTrans, bool isStartLeft, Action doLast)
+    IEnumerator SineWaveShootRoutine(int id, Transform targetTrans, bool isStartLeft, Action doLast)
     {
         mIsCoroutine = true;
-        float timer = 0;
+        float timer = 0, startDelay = onceStartDelay;
+        int countAtkNum = 0;
 
         while (mTimer < duration)
         {
-            while (onceStartDelay > 0)
+            if (attackNum == currAtkNum)
             {
-              if (!BombManager.sSingleton.isTimeStopBomb)
+                while (startDelay > 0)
                 {
-                    mTimer += Time.deltaTime;
-                    onceStartDelay -= Time.deltaTime;
+                    if (!BombManager.sSingleton.isTimeStopBomb)
+                    {
+                        mTimer += Time.deltaTime;
+                        startDelay -= Time.deltaTime;
+                    }
+                    yield return null;
                 }
-                yield return null;
+
+                for (int i = 0; i < sineWaveBullets; i++)
+                {
+//                    if (mTarget == null)
+//                        Debug.Log("NULL" + mTarget.position);
+                    SineWaveShoot(targetTrans.position, isStartLeft);
+
+                    timer += shootDelay + Time.deltaTime;
+                    yield return new WaitForSeconds(shootDelay);
+                }
+                timer += cooldown + Time.deltaTime;
+                yield return new WaitForSeconds(cooldown);
+
+                if (isGetNewTargetAftPause) mTarget = GameManager.sSingleton.GetRandomPlayer();
             }
 
-            for (int i = 0; i < sineWaveBullets; i++)
-            {
-                if (!BulletManager.sSingleton.IsDisableSpawnBullet) SineWaveShoot(targetTrans.position, isStartLeft);
-
-                timer += shootDelay;
-                yield return new WaitForSeconds(shootDelay);
-            }
-            yield return new WaitForSeconds(cooldown);
-
-            timer += cooldown + Time.deltaTime;
+            mSavedDir = Vector2.zero;
+            mPauseTimer += timer;
             mTimer = timer;
+
+            while (pauseEverySec != 0 && mPauseTimer >= pauseEverySec)
+            {
+                if (id == 1)
+                {
+                    mPauseTimer = 0;
+                    timer += pauseDur + Time.deltaTime;
+                    mTimer = timer;
+
+                    if (isIncreaseAtkNum && attackNum == currAtkNum)
+                    {
+                        countAtkNum++;
+                        if (countAtkNum == numOfAtkBefIncrease)
+                        {
+                            currAtkNum++;
+                            countAtkNum = 0;
+                        }
+                    }
+                }
+
+                yield return new WaitForSeconds(pauseDur);
+                mStartPos = owner.position;
+            }
         }
         doLast();
         mIsCoroutine = false;
@@ -287,55 +583,108 @@ public class AttackPattern : MonoBehaviour
 
     void UpdateProperties()
     {
-        properties.isPlayer = isPlayer;
-        properties.isMainPiercing = isMainPiercing;
-        properties.isSecondaryPiercing = isSecondaryPiercing;
+        properties.ownerType = ownerType;
         properties.template = template;
+        properties.isAlternateFire = isAlternateFire;
+        properties.isMagnum = isMagnum;
         properties.damage = mainBulletDamage;
         properties.speed = mainBulletSpeed;
         properties.frequency = frequency;
         properties.magnitude = magnitude;
         properties.magExpandMult = magExpandMult;
+
+        properties.giveStatRepelDur = giveStatRepelDur;
+        properties.slowValue = slowValue;
+        properties.repelValue = repelValue;
+        properties.trapDelayExpand = trapDelayExpand;
+        properties.trapExpandDur = trapExpandDur;
+        properties.trapExpandSpd = trapExpandSpd;
+        properties.trapRotateSpd = trapRotateSpd;
+        properties.trapMoveSpd = trapMoveSpd;
+        properties.trapDelayShrink = trapDelayShrink;
+		properties.trapShrinkSpd = trapShrinkSpd;
+		properties.trapFadeSpd = trapFadeSpd;
     }
 
-    void ShootSingleShot(Vector3 targetPos)
+    void ShootSingleShot(Transform targetTrans)
     {
-//        int bulIndex = 0;
         Transform bulletTrans = null;
         Vector2 dir = Vector2.zero;
-        Vector2 startPos = (Vector2) owner.position;
 
-        if (isPlayer)
+        Vector2 startPos = (Vector2) owner.position;
+        startPos.x += offsetPosition.x;
+        startPos.y += offsetPosition.y;
+
+        if (ownerType == OwnerType.PLAYER)
         {
             bulletTrans = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
 
-            startPos.x += mainBulletOffset.x;
-            startPos.y += (mPlayerController.PlayerSize.y / 2) + mainBulletOffset.y;
-            dir = bulletDirection;
+			startPos.x += mainBulletOffset.x;
+			startPos.y += (mPlayerController.PlayerSize.y / 2) + mainBulletOffset.y;
+			dir = bulletDirection;
+
+			if (isAlternateFire) 
+			{
+				if (alternateFire == AlternateFire.LEFT)
+				{
+					startPos.x -= alternateFireOffset;
+					alternateFire = AlternateFire.RIGHT;
+				}
+				else if (alternateFire == AlternateFire.RIGHT)
+				{
+					startPos.x += alternateFireOffset;
+					alternateFire = AlternateFire.LEFT;
+				}
+			}
         }
         else
         {
             bulletTrans = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.ENEMY, mainBulletIndex);
 
-            dir = (Vector2)(targetPos - owner.position).normalized;
+            if (isShootPlayer)
+            {
+                if (isFollowPlayer) dir = (Vector2)(targetTrans.position - owner.position).normalized;
+                else if (!isFollowPlayer)
+                {
+                    if (mSavedDir == Vector2.zero) mSavedDir = (Vector2)(targetTrans.position - owner.transform.position).normalized;
+                    dir = mSavedDir;
+                }
+            }
+            else
+            {
+                if (isDirectionFromOwner)
+                {
+                    Vector2 nextPos = (Vector2)owner.position + shootDirection;
+                    dir = (nextPos - (Vector2)owner.position).normalized;
+                }
+                else dir = (Vector2)((Vector3)shootDirection - owner.position).normalized;
+            }
+
             startPos += dir * initialSpacing;
+            if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayEnemyShootSfx();
         }
 
         Transform currBullet = bulletTrans;
         currBullet.position = (Vector3)startPos;
-
-        float bulletAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        currBullet.rotation = Quaternion.AngleAxis(-90 + bulletAngle, Vector3.forward);
         currBullet.gameObject.SetActive(true);
 
         BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
         SetProperties(ref bulletMove, dir);
+
+        if (ownerType != OwnerType.PLAYER)
+        {
+            Transform spark = BulletManager.sSingleton.GetBulletSpark(mainBulletIndex);
+            spark.position = (Vector3)startPos;
+            spark.gameObject.SetActive(true);
+        }
+
+        if (template == Template.SHOCK_REPEL_AND_TRAP_LASER) bulletMove.SetShockRepelTarget(targetTrans);
     }
 
-    void ShootAngleShot(Vector3 targetPos)
+    void ShootAngleShot(Transform targetTrans)
     {
         Vector2 targetDir = Vector2.zero;
-        if (isPlayer) 
+        if (ownerType == OwnerType.PLAYER) 
         {
             Vector3 temp = transform.position;
             temp.y = bulletDirection.y;
@@ -343,7 +692,27 @@ public class AttackPattern : MonoBehaviour
 
             if (targetDir.y < 0) targetDir.y = Mathf.Abs(targetDir.y);
         }
-        else targetDir = (Vector2)(targetPos - owner.transform.position).normalized;
+        else 
+        {
+            if (isShootPlayer)
+            {
+                if (isFollowPlayer) targetDir = (Vector2)(targetTrans.position - owner.transform.position).normalized;
+                else if (!isFollowPlayer)
+                {
+                    if (mSavedDir == Vector2.zero) mSavedDir = (Vector2)(targetTrans.position - owner.transform.position).normalized;
+                    targetDir = mSavedDir;
+                }
+            }
+            else
+            {
+                if (isDirectionFromOwner)
+                {
+                    Vector2 nextPos = (Vector2)owner.position + shootDirection;
+                    targetDir = (nextPos - (Vector2)owner.position).normalized;
+                }
+                else targetDir = (Vector2)((Vector3)shootDirection - owner.position).normalized;
+            }
+        }
 
         mAngle = Vector2.Angle(targetDir, transform.up) * Mathf.Deg2Rad;
         if (targetDir.x < 0)
@@ -384,19 +753,22 @@ public class AttackPattern : MonoBehaviour
 //            Debug.DrawLine(transform.position, target, Color.red);
 
             Transform currBullet = null;
-            if (isPlayer) currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
+            if (ownerType == OwnerType.PLAYER) currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
             else currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.ENEMY, mainBulletIndex);
 
             Vector3 dir = (target - (Vector2)transform.position).normalized;
             currBullet.position = (Vector3)target + (Vector3)dir * initialSpacing;
-
-            float bulletAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            currBullet.rotation = Quaternion.AngleAxis(-90 + bulletAngle, Vector3.forward);
             currBullet.gameObject.SetActive(true);
 
             BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
             SetProperties(ref bulletMove, dir);
         }
+
+        Transform spark = BulletManager.sSingleton.GetBulletSpark(mainBulletIndex);
+        spark.position = owner.position;
+        spark.gameObject.SetActive(true);
+
+        if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayEnemyShootSfx();
     }
 
     void ShootAroundInCirlce()
@@ -413,60 +785,106 @@ public class AttackPattern : MonoBehaviour
         }
         else startTurnDelay -= shootDelay - Time.deltaTime;
 
+        Vector3 startPos = Vector3.zero;
+        if (isOneStartPoint) startPos = mStartPos;
+        else startPos = owner.position;
+
         for (int i = 0; i < segments; i++)
         {
             float x = Mathf.Sin (mAngle + (xOffset * Mathf.Deg2Rad)) * distance;
             float y = Mathf.Cos (mAngle + (yOffset * Mathf.Deg2Rad)) * distance;
-            mAngle += (Mathf.PI * 2 / segments);
 
             Vector2 dir = Vector2.zero;
-            if (isClockwise) { dir.x += x;  dir.y += y; }
-            else { dir.x += y; dir.y += x; }
+            if (isClockwise) { dir.x += x;  dir.y += y; mAngle += (Mathf.PI * 2 / segments); }
+            else { dir.x += y; dir.y += x; mAngle -= (Mathf.PI * 2 / segments);}
 
             Transform currBullet = null;
-            if (isPlayer) currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
+            if (ownerType == OwnerType.PLAYER) currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
             else currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.ENEMY, mainBulletIndex);
 
-            currBullet.position = owner.position;
+            Vector3 temp = startPos;
+            temp.x += offsetPosition.x;
+            temp.y += offsetPosition.y;
+            currBullet.position = temp;
 
-            float bulletAngle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-            currBullet.rotation = Quaternion.AngleAxis(-90 + bulletAngle, Vector3.forward);
+            currBullet.position += ((Vector3)dir * initialSpacing);
             currBullet.gameObject.SetActive(true);
 
             BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
             SetProperties(ref bulletMove, dir);
         }
-
         mAngle += (turningRate * Mathf.Deg2Rad);
+
+        Transform spark = BulletManager.sSingleton.GetBulletSpark(mainBulletIndex);
+        Vector3 pos = startPos;
+        pos.x += offsetPosition.x;
+        pos.y += offsetPosition.y;
+        spark.position = pos;
+        spark.gameObject.SetActive(true);
+
+        if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayEnemyShootSfx();
     }
 
     void SineWaveShoot(bool isStartLeft) { SineWaveShoot(Vector3.zero, isStartLeft); }
     void SineWaveShoot(Vector3 targetPos, bool isStartLeft)
     {
         Transform currBullet = null;
-        if (isPlayer) currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
+        if (ownerType == OwnerType.PLAYER) currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.PLAYER_MAIN, mainBulletIndex);
         else currBullet = BulletManager.sSingleton.GetBulletTrans(BulletManager.GroupIndex.ENEMY, mainBulletIndex);
 
-        Vector3 temp = owner.position;
+        Vector3 startPos = Vector3.zero;
+        if (isOneStartPoint) startPos = mStartPos;
+        else startPos = owner.position;
+
+        Vector3 temp = startPos;
         temp.x += offsetPosition.x;
         temp.y += offsetPosition.y;
         currBullet.position = temp;
         currBullet.gameObject.SetActive(true);
 
         Vector2 dir = Vector2.zero;
-        if (isPlayer) dir = bulletDirection;
-        else dir = (Vector2) (targetPos - owner.transform.position).normalized;
+        if (ownerType == OwnerType.PLAYER) dir = bulletDirection;
+        else 
+        {
+            if (isShootPlayer)
+            {
+                if (isFollowPlayer) dir = (Vector2)(targetPos - startPos).normalized;
+                else if (!isFollowPlayer)
+                {
+                    if (mSavedDir == Vector2.zero) mSavedDir = (Vector2)(targetPos - startPos).normalized;
+                    dir = mSavedDir;
+                }
+            }
+            else
+            {
+                if (isDirectionFromOwner)
+                {
+                    Vector2 nextPos = (Vector2)owner.position + shootDirection;
+                    dir = (nextPos - (Vector2)owner.position).normalized;
+                }
+                else dir = (Vector2)((Vector3)shootDirection - owner.position).normalized;
+            }
+        }
 
         BulletMove bulletMove = currBullet.GetComponent<BulletMove>();
         SetProperties(ref bulletMove, dir);
         bulletMove.SetCurveAxis(GetCurveAxis(dir, isStartLeft));
+
+        Transform spark = BulletManager.sSingleton.GetBulletSpark(mainBulletIndex);
+        spark.position = currBullet.position;
+        spark.gameObject.SetActive(true);
+
+        if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayEnemyShootSfx();
     }
 
     void SetProperties(ref BulletMove bulletMove, Vector2 dir)
     {
+        bulletMove.SetIsPiercing(isMainPiercing);
         bulletMove.SetBaseProperties(properties);
         bulletMove.SetDirection(dir);
         bulletMove.SetNewBulletSpeed(speedChangeList);
+
+        bulletMove.BulletType = BulletManager.GroupIndex.PLAYER_MAIN;
     }
 
     Vector2 GetCurveAxis(Vector2 dir, bool isStartLeft)
@@ -484,5 +902,13 @@ public class AttackPattern : MonoBehaviour
         else curveAxis = new Vector2(-xVal, -yVal);
 
         return curveAxis;
+    }
+
+    void OnDisable()
+    {
+        mSavedDir = Vector2.zero;
+        mTimer = mPauseTimer = 0;
+        mAngle = angleStart;
+        mPotraitTimer = 0;
     }
 }

@@ -6,5 +6,7 @@ public class BulletPrefabData : ScriptableObject
 {
     public List<Transform> plyMainBulletTransList = new List<Transform>();
     public List<Transform> plySecondaryBulletTransList = new List<Transform>();
+    public List<Transform> plyLaserTransNoCacheList = new List<Transform>();
     public List<Transform> enemyBulletTransList = new List<Transform>();
+    public List<Transform> enemyBulletSparkList = new List<Transform>();
 }

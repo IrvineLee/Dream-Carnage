@@ -6,12 +6,19 @@ using System;
 
 public class DialogueManager : MonoBehaviour 
 {
-    public static DialogueManager sSingleton;
-    public List<DialogueData> dialogueDataList = new List<DialogueData>();
+    public static DialogueManager sSingleton { get { return _sSingleton; } }
+    static DialogueManager _sSingleton;
+
+    public int currDialogueData = 0;
+	public List<DialogueData> dialogueDataList = new List<DialogueData>();
+	public List<DialogueData> engDataList = new List<DialogueData>();
+    public List<DialogueData> jpDataList = new List<DialogueData>();
 
     public SpriteRenderer leftCharacter, rightCharacter, endDialogueIcon;
     public Transform dialogueBox;
     public Transform ansSelBoxDefault;
+
+	public MainMenuManager.Language language = MainMenuManager.Language.ENGLISH;
 
     [Tooltip("Typewriter speed delay.")]
     public float textDelay = 0.0f;
@@ -21,6 +28,8 @@ public class DialogueManager : MonoBehaviour
     public float endIconSpeed = 1.0f;
     [Tooltip("The spacing multiplier between answer choices.")]
     public float ansChoiceYMult = 1.5f;
+
+    public float fastMoveTime = 0.01f;
 
     public Transform answerPrefab;
 
@@ -78,12 +87,16 @@ public class DialogueManager : MonoBehaviour
 		LEFT,
 		RIGHT
 	}
-	ActiveCharacterSpriteState mActiveCharacterSpriteState = ActiveCharacterSpriteState.NONE;
+    ActiveCharacterSpriteState mActiveCharacterSpriteState = ActiveCharacterSpriteState.NONE;
+	ActiveCharacterSpriteState mPrevCharacterSpriteState = ActiveCharacterSpriteState.NONE;
 
     Text mCharacterText, mDialogueText;
+    DialogueData.Dialogue prevFadeOnClickDialogue;
 
-    int mCurrDialogueData = 0, mCurrDialogueIndex = 0, mCurrSentenceIndex = 0, mCurrResponseIndex = 0;
-    bool mIsShowingSentence = false, mIsSwapActive = false, mIsCoroutine = false;
+    int mCurrDialogueIndex = 0, mCurrSentenceIndex = 0, mCurrResponseIndex = 0, mCurrDisappearOnClick = 0;
+    bool mIsShowingSentence = false, mIsSwapActive = false, mIsCoroutine = false, mIsFirstStart = true;
+    bool mIsHandlePrevMoveOut = false, mIsFadeOnClick = false;
+    bool mIsP1KeybInput = true, mIsUpdatedPosScale = false;
 
     int mAnswerClicked = -1;
     List<Transform> mAnswerTransList = new List<Transform>();
@@ -95,11 +108,20 @@ public class DialogueManager : MonoBehaviour
 
     void Awake()
     {
-        sSingleton = this;  
+        if (_sSingleton != null && _sSingleton != this) Destroy(this.gameObject);
+        else _sSingleton = this;
     }
 
 	void Start () 
 	{
+		if (MainMenuManager.sSingleton != null) language = MainMenuManager.sSingleton.language;
+		dialogueDataList.Clear ();
+
+		if (language == MainMenuManager.Language.ENGLISH) dialogueDataList = engDataList;
+		else  dialogueDataList = jpDataList;
+
+        mIsP1KeybInput = JoystickManager.sSingleton.IsP1KeybInput;
+
         Initialization();
         CharInitialization();
         CharSpriteState();
@@ -108,7 +130,7 @@ public class DialogueManager : MonoBehaviour
 	void Update () 
 	{
         endDialogueIcon.transform.Rotate (Vector3.up * endIconSpeed, Space.World);
-        HandleDialogue();
+//        HandleDialogue();
 	}
 
     // Value initialization.
@@ -134,7 +156,7 @@ public class DialogueManager : MonoBehaviour
     {
         CharacterSprite.Type charType1 = CharacterSprite.Type.LEFT_CHARACTER;
         CharacterSprite.Type charType2 = CharacterSprite.Type.RIGHT_CHARACTER;
-        CharacterSprite.SpriteState sprState = CharacterSprite.SpriteState.IN_SCREEN;
+        CharacterSprite.SpriteState sprState = CharacterSprite.SpriteState.OUT_SCREEN;
 
         characterSpriteList.Add(new CharacterSprite(charType1, leftCharacter, sprState));
         characterSpriteList.Add(new CharacterSprite(charType2, rightCharacter, sprState));
@@ -143,14 +165,16 @@ public class DialogueManager : MonoBehaviour
     // Set left and right character's sprite and state.
     void CharSpriteState()
     {
-        DialogueData.Dialogue firstDiag = dialogueDataList[mCurrDialogueData].dialogueList [0];
+        if (currDialogueData > dialogueDataList.Count - 1) return;
+
+        DialogueData.Dialogue firstDiag = dialogueDataList[currDialogueData].dialogueList [0];
         Sprite firstSprite = firstDiag.sentenceList [0].sprite;
 
         DialogueData.Dialogue secondDiag = null;
         Sprite secondSprite = null;
-        for (int i = 1; i < dialogueDataList[mCurrDialogueData].dialogueList.Count; i++) 
+        for (int i = 1; i < dialogueDataList[currDialogueData].dialogueList.Count; i++) 
         {
-            DialogueData.Dialogue currDiag = dialogueDataList[mCurrDialogueData].dialogueList [i];
+            DialogueData.Dialogue currDiag = dialogueDataList[currDialogueData].dialogueList [i];
             if (currDiag.character.name != CharacterData.Info.Character.NONE &&
                 firstDiag.character.name != currDiag.character.name)  { secondDiag = currDiag; break; }
         }
@@ -162,7 +186,7 @@ public class DialogueManager : MonoBehaviour
             characterSpriteList[0].characterSpriteRend.sprite = firstSprite;
             if(secondSprite != null) characterSpriteList[1].characterSpriteRend.sprite = secondSprite; 
 
-            if (!dialogueDataList[mCurrDialogueData].isBothAppear) characterSpriteList[1].spriteState = CharacterSprite.SpriteState.INVISIBLE_IN_SCREEN;
+            if (!dialogueDataList[currDialogueData].isBothAppear) characterSpriteList[1].spriteState = CharacterSprite.SpriteState.INVISIBLE_IN_SCREEN;
         }
         else 
         {
@@ -170,19 +194,26 @@ public class DialogueManager : MonoBehaviour
             characterSpriteList[1].characterSpriteRend.sprite = firstSprite;
             if (secondSprite != null) characterSpriteList[0].characterSpriteRend.sprite = secondSprite; 
 
-            if (!dialogueDataList[mCurrDialogueData].isBothAppear) characterSpriteList[0].spriteState = CharacterSprite.SpriteState.INVISIBLE_IN_SCREEN;
+            if (!dialogueDataList[currDialogueData].isBothAppear) characterSpriteList[0].spriteState = CharacterSprite.SpriteState.INVISIBLE_IN_SCREEN;
         }
         SetActiveCharacterSpriteShade();
     }
 
     // Handle dialogue based on current state it is in.
-    void HandleDialogue()
+    public void HandleDialogue()
     {
         if (mCurrentState == CurrentState.DIALOGUE_PAUSE) return;
 
-        if (Input.GetMouseButtonDown (0) && !DialogueSlide.sSingleton.isAppearing) 
+		if (((mIsP1KeybInput && (Input.GetKeyDown(KeyCode.Z) || Input.GetMouseButtonDown (0) || Input.GetKey(KeyCode.Space))) || 
+            Input.GetKeyDown(JoystickManager.sSingleton.p1_joystick.acceptKey) || Input.GetKey(JoystickManager.sSingleton.p1_joystick.skipConvoKey) || Input.GetKey(KeyCode.Space) ||
+            mIsFirstStart) && !DialogueSlide.sSingleton.isAppearing) 
         {
-            if (mCurrentState == CurrentState.NO_DIALOGUE && mCurrDialogueIndex < dialogueDataList[mCurrDialogueData].dialogueList.Count) HandleNoDialogue();
+            mIsFirstStart = false;
+            if (mCurrentState == CurrentState.NO_DIALOGUE)
+            {
+                if (currDialogueData > dialogueDataList.Count - 1) return;
+                else if (mCurrDialogueIndex < dialogueDataList[currDialogueData].dialogueList.Count) HandleNoDialogue();
+            }
 
             if (mCurrentState == CurrentState.DIALOGUE_SHOW) HandleDialogueShow();
             else if (mCurrentState == CurrentState.RESPONSE_SHOW) HandleAnswerResponse();
@@ -194,11 +225,14 @@ public class DialogueManager : MonoBehaviour
     // Handle when no dialogue is displayed on screen.
     void HandleNoDialogue()
     {
-        if (dialogueDataList[mCurrDialogueData].isBothAppear) DialogueSlide.sSingleton.AppearAll();
+        if (dialogueDataList[currDialogueData].isBothAppear) DialogueSlide.sSingleton.AppearAll();
         else
         {
-            bool isLeft = dialogueDataList[mCurrDialogueData].dialogueList [0].isLeft;
+            bool isLeft = dialogueDataList[currDialogueData].dialogueList [0].isLeft;
+
+            UpdateCharPositionAndScale(isLeft);
             DialogueSlide.sSingleton.SlideIn (true, isLeft);
+            characterSpriteList[0].spriteState = CharacterSprite.SpriteState.IN_SCREEN;
         }
         mCurrentState = CurrentState.DIALOGUE_SHOW;
     }
@@ -206,12 +240,47 @@ public class DialogueManager : MonoBehaviour
     // Handle the moving in of character potraits and dialogue sentences.
     void HandleDialogueShow()
     {
-        DialogueData.Dialogue currDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
+        // ---------------------------HANDLE PREVIOUS MOVE-OUT TIME---------------------------
+        if (!mIsHandlePrevMoveOut && mCurrDialogueIndex != 0)
+        {
+            DialogueData.Dialogue prevDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex - 1];
 
-		// Update current character state.
-		if (currDialogue.isLeft) mActiveCharacterSpriteState = ActiveCharacterSpriteState.LEFT;
-		else mActiveCharacterSpriteState = ActiveCharacterSpriteState.RIGHT;
-		mIsSwapActive = false;
+            if (!mIsFadeOnClick && prevDialogue.disappearMeth == DialogueData.Dialogue.AppearMethod.FADE_ON_CLICK)
+            {
+                mIsFadeOnClick = true;
+                prevFadeOnClickDialogue = prevDialogue;
+                mPrevCharacterSpriteState = mActiveCharacterSpriteState;
+            }
+            mIsHandlePrevMoveOut = true;
+        }
+
+        if (mIsFadeOnClick)
+        {
+            if (prevFadeOnClickDialogue.time.moveOutID == mCurrDialogueIndex || prevFadeOnClickDialogue.time.moveOutID == mCurrDialogueIndex)
+            {
+                bool isLeft = prevFadeOnClickDialogue.isLeft;
+
+                float moveOutTime = prevFadeOnClickDialogue.time.moveOutTime;
+                if (Input.GetKey(JoystickManager.sSingleton.p1_joystick.skipConvoKey) || Input.GetKey(KeyCode.Space)) moveOutTime = fastMoveTime;
+
+                DialogueSlide.sSingleton.MoveChar (false, isLeft, false, fastMoveTime);
+
+                if (mPrevCharacterSpriteState == ActiveCharacterSpriteState.LEFT)
+                    characterSpriteList[0].spriteState = CharacterSprite.SpriteState.OUT_SCREEN;
+                else if (mPrevCharacterSpriteState == ActiveCharacterSpriteState.RIGHT)
+                    characterSpriteList[1].spriteState = CharacterSprite.SpriteState.OUT_SCREEN;
+                mIsFadeOnClick = false;
+            }
+        }
+
+        DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
+
+        // Update current character state.
+        if (currDialogue.isLeft) mActiveCharacterSpriteState = ActiveCharacterSpriteState.LEFT;
+        else mActiveCharacterSpriteState = ActiveCharacterSpriteState.RIGHT;
+
+        if (mCurrDialogueIndex != 0 && !mIsUpdatedPosScale) UpdateCharPositionAndScale(currDialogue.isLeft);
+        mIsSwapActive = false;
 
         // ------------------------------HANDLE MOVE-IN TIME------------------------------
         if (currDialogue.time.moveInTime > 0 &&
@@ -220,8 +289,6 @@ public class DialogueManager : MonoBehaviour
         { 
             if (currDialogue.appearMeth == DialogueData.Dialogue.AppearMethod.FADE)
             {
-                if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT) leftCharacter.transform.position = defaultLeftSprPos;
-                else if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT) rightCharacter.transform.position = defaultRightSprPos;
                 AppearCharOnScreen(currDialogue);
             }
             else if (currDialogue.appearMeth == DialogueData.Dialogue.AppearMethod.SLIDE)
@@ -267,15 +334,37 @@ public class DialogueManager : MonoBehaviour
                     else mActiveCharacterSpriteState = ActiveCharacterSpriteState.RIGHT;
                 }
                 string charName = currDialogue.character.name.ToString();
-                UpdateCharacterSprite(currSentence);
+				if (language == MainMenuManager.Language.JAPANESE) charName = GetCharacterJpName(charName);
+
+                if (charName != "") UpdateCharacterSprite(currSentence);
                 ShowNextDialogue(currSentence, charName);
             }
         }
     }
 
+    string GetCharacterJpName(string charName)
+    {
+        CharacterData charData = dialogueDataList[currDialogueData].characterData;
+        int count = charData.characterList.Count;
+
+        for (int i = 0; i < count; i++)
+        {
+            if (charName == charData.characterList[i].name.ToString()) return charData.characterList[i].jpName;
+        }
+        return "";
+    }
+
+    Transform GetCharacterTransform(int charIndex, bool isLeft)
+    {
+        CharacterData charData = dialogueDataList[currDialogueData].characterData;
+
+        if (isLeft) return charData.characterList[charIndex].charPosList[0];
+        return charData.characterList[charIndex].charPosList[1];
+    }
+
     void HandleAnswerResponse()
     {
-        List<DialogueData.Dialogue.Sentence> responseList = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex].answerChoiceList[mAnswerClicked - 1].responseList;
+        List<DialogueData.Dialogue.Sentence> responseList = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex].answerChoiceList[mAnswerClicked - 1].responseList;
 
         int responseCount = responseList.Count;
         if(responseCount == 0) SetToNextResponse(responseCount);
@@ -307,6 +396,10 @@ public class DialogueManager : MonoBehaviour
         DialogueSlide.sSingleton.DisappearAll(true);
         endDialogueIcon.gameObject.SetActive(false);
         mCurrentState = CurrentState.DIALOGUE_PAUSE;
+
+        mIsFirstStart = true;
+//        GameManager.sSingleton.SetToTutorialState();
+        GameManager.sSingleton.SetToBattleState();
     }
         
     // Change character sprite for current sentence.
@@ -334,14 +427,15 @@ public class DialogueManager : MonoBehaviour
 
     void ShowNextDialogue(DialogueData.Dialogue.Sentence currSentence, string charName)
     {
-        if (charName == "NONE") DarkenBothCharacterSpriteShade();
+        if (charName == "") DarkenBothCharacterSpriteShade();
         else if (mIsSwapActive) SwapActiveCharacterSpriteShade();
         else SetActiveCharacterSpriteShade();
         mIsSwapActive = false;
 
         // Change character's name.
-        if (charName == "NONE") mCharacterText.text = "";
-        else mCharacterText.text = UppercaseStartAlphabet(charName, '_');
+        if (charName == "") mCharacterText.text = "";
+		else if (language == MainMenuManager.Language.ENGLISH) mCharacterText.text = UppercaseStartAlphabet(charName, '_');
+		else if (language == MainMenuManager.Language.JAPANESE) mCharacterText.text = charName;
 
         // Display character's text.
         coroutine = TypewriterStyle(currSentence.text, SetToNextSentence);
@@ -351,15 +445,15 @@ public class DialogueManager : MonoBehaviour
 
     void SetToNextDialogue()
     {
-        DialogueData.Dialogue currDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
-        int dialogueCount = dialogueDataList[mCurrDialogueData].dialogueList.Count;
+        DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
+        int dialogueCount = dialogueDataList[currDialogueData].dialogueList.Count;
 
         mIsShowingSentence = false;
 
         if (mCurrDialogueIndex + 1 < dialogueCount)
         { 
             CharacterData.Info.Character currChar = currDialogue.character.name;
-            CharacterData.Info.Character nextChar = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex + 1].character.name;
+            CharacterData.Info.Character nextChar = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex + 1].character.name;
             bool isNextCharNone = IsNextCharacterNone(currDialogue);
 
             if (currChar != CharacterData.Info.Character.NONE && isNextCharNone) 
@@ -372,27 +466,36 @@ public class DialogueManager : MonoBehaviour
             {
                 // ------------------------------HANDLE MOVE-OUT TIME------------------------------
                 if (currDialogue.time.moveOutTime > 0) HandleMoveOutTime(currDialogue);
-                else mCurrentState = CurrentState.DIALOGUE_SHOW;
+                else  mCurrentState = CurrentState.DIALOGUE_SHOW;
                 // --------------------------------END MOVE-OUT TIME-------------------------------
 
                 mCurrDialogueIndex++;
+                mIsUpdatedPosScale = false;
+                mIsHandlePrevMoveOut = false;
 
                 // Set back the active character's state.
                 if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.NONE) 
                 {
-                    DialogueData.Dialogue nextDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
+                    DialogueData.Dialogue nextDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
                     if (nextDialogue.isLeft) mActiveCharacterSpriteState = ActiveCharacterSpriteState.LEFT;
                     else mActiveCharacterSpriteState = ActiveCharacterSpriteState.RIGHT;
                 }
             }
         }
-        else if (mCurrDialogueIndex + 1 >= dialogueCount) mCurrentState = CurrentState.DIALOGUE_ENDED;
+        else if (mCurrDialogueIndex + 1 >= dialogueCount) 
+        {
+            mCurrentState = CurrentState.DIALOGUE_ENDED;
+            currDialogueData++;
+//            mIsFirstStart = true;
+//            GameManager.sSingleton.state = GameManager.State.NONE;
+//            Debug.Log("Ended");
+        }
     }
 
     // Skip to the next dialogue box.
     void SetToNextSentence()
     {
-        DialogueData.Dialogue currDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
+        DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
         int textCount = currDialogue.sentenceList.Count;
         if (mCurrSentenceIndex + 1 < textCount)
         {
@@ -405,7 +508,6 @@ public class DialogueManager : MonoBehaviour
         {
             mCurrSentenceIndex = 0;
             int answerCount = currDialogue.answerChoiceList.Count;
-
             StartCoroutine(CoroutineInOrder(DelayTime(currDialogue.time.delayTime), WaitForAnswerChoices(currDialogue.answerChoiceList)));
         }
     }
@@ -422,7 +524,7 @@ public class DialogueManager : MonoBehaviour
         {
             mCurrResponseIndex = 0;
 
-            int dialogueCount = dialogueDataList[mCurrDialogueData].dialogueList.Count;
+            int dialogueCount = dialogueDataList[currDialogueData].dialogueList.Count;
             if (mCurrDialogueIndex + 1 >= dialogueCount && responseCount == 0) HandleDialogueEnded();
 
             SetToNextDialogue();
@@ -476,12 +578,13 @@ public class DialogueManager : MonoBehaviour
     {
         mCurrentState = CurrentState.DIALOGUE_PAUSE;
 
-        DialogueData.Dialogue currDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
+        DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
         DialogueSlide.sSingleton.DisappearAll(false);
         yield return new WaitForSeconds (currDialogue.time.reOpenTime); 
 
         mCurrDialogueIndex++;
-        currDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
+        mIsUpdatedPosScale = false;
+        currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
 
         if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.NONE)
         {
@@ -495,7 +598,7 @@ public class DialogueManager : MonoBehaviour
         UpdateCharacterSprite(currSentence);
         ShowNextDialogue(currSentence, charName);
 
-        if (dialogueDataList[mCurrDialogueData].isBothAppear) 
+        if (dialogueDataList[currDialogueData].isBothAppear) 
         {
             DialogueSlide.sSingleton.AppearAll ();
             mCurrentState = CurrentState.DIALOGUE_SHOW;
@@ -555,11 +658,39 @@ public class DialogueManager : MonoBehaviour
         else SetToNextDialogue();
     }
 
+    void UpdateCharPositionAndScale(bool isLeft)
+    {
+        mIsUpdatedPosScale = true;
+
+        DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
+        if (currDialogue.character.charPosList.Count != 0)
+        {
+            if (isLeft)
+            {
+                if (characterSpriteList[0].spriteState == CharacterSprite.SpriteState.IN_SCREEN) return;
+
+                leftCharacter.transform.localPosition = currDialogue.character.charPosList[0].localPosition;
+                leftCharacter.transform.localScale = currDialogue.character.charPosList[0].localScale;
+            }
+            else
+            {
+                if (characterSpriteList[1].spriteState == CharacterSprite.SpriteState.IN_SCREEN) return;
+
+                rightCharacter.transform.localPosition = currDialogue.character.charPosList[1].localPosition;
+                rightCharacter.transform.localScale = currDialogue.character.charPosList[1].localScale;
+            }
+        }
+    }
+
     // Move the other character into screen if it is not in screen or is invisible.
     void AppearCharOnScreen(DialogueData.Dialogue currDialogue)
     {
         bool isLeft = currDialogue.isLeft;
-        DialogueSlide.sSingleton.MoveChar (true, isLeft, false, currDialogue.time.moveInTime);
+
+        float moveInTime = currDialogue.time.moveInTime;
+        if (Input.GetKey(JoystickManager.sSingleton.p1_joystick.skipConvoKey) || Input.GetKey(KeyCode.Space)) moveInTime = fastMoveTime;
+            
+        DialogueSlide.sSingleton.MoveChar (true, isLeft, false, moveInTime);
 
         if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT) characterSpriteList [0].spriteState = CharacterSprite.SpriteState.IN_SCREEN;
         else if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT) characterSpriteList [1].spriteState = CharacterSprite.SpriteState.IN_SCREEN;
@@ -649,7 +780,11 @@ public class DialogueManager : MonoBehaviour
 		if (currDialogue.disappearMeth == DialogueData.Dialogue.AppearMethod.FADE) 
 		{
 			bool isLeft = currDialogue.isLeft;
-            DialogueSlide.sSingleton.MoveChar (false, isLeft, false, currDialogue.time.moveOutTime);
+
+            float moveOutTime = currDialogue.time.moveOutTime;
+            if (Input.GetKey(JoystickManager.sSingleton.p1_joystick.skipConvoKey) || Input.GetKey(KeyCode.Space)) moveOutTime = fastMoveTime;
+
+            DialogueSlide.sSingleton.MoveChar (false, isLeft, false, fastMoveTime);
 
 			if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT) characterSpriteList[0].spriteState = CharacterSprite.SpriteState.INVISIBLE_IN_SCREEN;
 			else if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT) characterSpriteList[1].spriteState = CharacterSprite.SpriteState.INVISIBLE_IN_SCREEN;
@@ -662,8 +797,9 @@ public class DialogueManager : MonoBehaviour
 			else if(mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT)  trans = rightCharacter.transform;
 
             endDialogueIcon.gameObject.SetActive(false);
-            DialogueSlide.sSingleton.SpriteSlideOut (trans, currDialogue.isLeft, currDialogue.time.moveOutTime);	
+            DialogueSlide.sSingleton.SpriteSlideOut (trans, currDialogue.isLeft, currDialogue.time.moveOutTime);
 		}
+        else mCurrentState = CurrentState.DIALOGUE_SHOW;
     }
 
     // Check to see whether the next character is None.
@@ -672,8 +808,8 @@ public class DialogueManager : MonoBehaviour
         CharacterData.Info.Character nextChar;
 
         int nextIndex = mCurrDialogueIndex + 1;
-        if (nextIndex >= dialogueDataList[mCurrDialogueData].dialogueList.Count) nextIndex = 0;
-        nextChar = dialogueDataList[mCurrDialogueData].dialogueList[nextIndex].character.name;
+        if (nextIndex >= dialogueDataList[currDialogueData].dialogueList.Count) nextIndex = 0;
+        nextChar = dialogueDataList[currDialogueData].dialogueList[nextIndex].character.name;
 
         if (nextChar.ToString() == "NONE") return true;
         return false;
@@ -686,8 +822,8 @@ public class DialogueManager : MonoBehaviour
         currChar = currDialogue.character.name;
 
         int nextIndex = mCurrDialogueIndex + 1;
-        if (nextIndex >= dialogueDataList[mCurrDialogueData].dialogueList.Count) nextIndex = 0;
-        nextChar = dialogueDataList[mCurrDialogueData].dialogueList[nextIndex].character.name;
+        if (nextIndex >= dialogueDataList[currDialogueData].dialogueList.Count) nextIndex = 0;
+        nextChar = dialogueDataList[currDialogueData].dialogueList[nextIndex].character.name;
 
         if(currChar == nextChar) return true;
         return false;
@@ -697,8 +833,10 @@ public class DialogueManager : MonoBehaviour
     string UppercaseStartAlphabet(string str, char space)
     {
         str = str.ToLower();
-
         int index = str.IndexOf('_');
+
+        if (index < 0)  return char.ToUpper(str[0]) + str.Substring(1);;
+
         string firstName = str.Substring(0, index);
         firstName = char.ToUpper(firstName[0]) + firstName.Substring(1);
 
@@ -709,6 +847,7 @@ public class DialogueManager : MonoBehaviour
 
     void Reset()
     {
+        mIsFirstStart = true;
         mIsSwapActive = false;
         mCurrResponseIndex = 0;
         mCurrSentenceIndex = 0;
@@ -743,21 +882,22 @@ public class DialogueManager : MonoBehaviour
 
         mCurrentState = CurrentState.DIALOGUE_SHOW;
 
-        DialogueData.Dialogue currDialogue = dialogueDataList[mCurrDialogueData].dialogueList[mCurrDialogueIndex];
+        DialogueData.Dialogue currDialogue = dialogueDataList[currDialogueData].dialogueList[mCurrDialogueIndex];
         HandleDialogueText(currDialogue);
     }
 
     public void SetDialogueShowOutScreen()
     {
-        if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT) characterSpriteList[0].spriteState = CharacterSprite.SpriteState.OUT_SCREEN;
-        else if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT) characterSpriteList[1].spriteState = CharacterSprite.SpriteState.OUT_SCREEN;
+//        if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT) characterSpriteList[0].spriteState = CharacterSprite.SpriteState.OUT_SCREEN;
+//        else if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT) characterSpriteList[1].spriteState = CharacterSprite.SpriteState.OUT_SCREEN;
 
         SetToDialogueShowEnded();
     }
 
     public void SetToDialogueShowEnded()
     {
-        mCurrentState = CurrentState.DIALOGUE_SHOW;
+        if (mActiveCharacterSpriteState == ActiveCharacterSpriteState.LEFT && characterSpriteList[0].spriteState == CharacterSprite.SpriteState.IN_SCREEN ||
+            mActiveCharacterSpriteState == ActiveCharacterSpriteState.RIGHT && characterSpriteList[1].spriteState == CharacterSprite.SpriteState.IN_SCREEN) return;
         endDialogueIcon.gameObject.SetActive(true);
     }
 

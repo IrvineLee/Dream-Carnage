@@ -5,9 +5,12 @@ using UnityEngine.UI;
 
 public class PlayerSoul : MonoBehaviour 
 {
-    public Transform timerTextTrans;
-    public Transform revivalCircleTrans;
+	public ParticleSystem revivalCirclePS;
+    public Transform saveUITrans;
+    public Image UI_FillUpSoulImage;
+    public List<Sprite> UI_FillUpSoulSprite;
 
+    Transform mTimerTextTrans;
     float mTimer;
     Text mTimerText;
     bool mStopTime = false;
@@ -17,7 +20,21 @@ public class PlayerSoul : MonoBehaviour
 
     void Start()
     {
-        mTimerText = timerTextTrans.GetComponent<Text>();
+        if (transform.parent.tag == TagManager.sSingleton.player1Tag)
+        {
+            mTimerTextTrans = UIManager.sSingleton.GetDeathTimerUI(0);
+            mTimerText = mTimerTextTrans.GetComponent<Text>();
+
+            UI_FillUpSoulImage = UIManager.sSingleton.GetReviveUI(0);
+        }
+        else
+        {
+            mTimerTextTrans = UIManager.sSingleton.GetDeathTimerUI(1);
+            mTimerText = mTimerTextTrans.GetComponent<Text>();
+
+            UI_FillUpSoulImage = UIManager.sSingleton.GetReviveUI(1);
+        }
+
         sr = GetComponent<SpriteRenderer>();
         mPlayerController = GetComponentInParent<PlayerController>();
     }
@@ -32,9 +49,9 @@ public class PlayerSoul : MonoBehaviour
             if (mTimer <= 0)
             {
 				mPlayerController.MinusLife ();
-                mPlayerController.ReviveSelf();
+                if (mPlayerController.life >= 0) mPlayerController.ReviveSelf(true);
+
                 Deactivate();
-                Debug.Log("Ended");
             }
         }
 	}
@@ -43,31 +60,38 @@ public class PlayerSoul : MonoBehaviour
     {
         sr.enabled = true;
         ResetDeadTimeToDefault();
-        revivalCircleTrans.gameObject.SetActive(true);
+		revivalCirclePS.gameObject.SetActive(true);
+		revivalCirclePS.Play ();
+        saveUITrans.gameObject.SetActive(true);
+
+        UI_FillUpSoulImage.transform.position = transform.position;
+        UI_FillUpSoulImage.gameObject.SetActive(true);
     }
 
     public void Deactivate()
     {
+        UI_FillUpSoulImage.fillAmount = 0;
         sr.enabled = false;
-        timerTextTrans.gameObject.SetActive(false);
-        revivalCircleTrans.gameObject.SetActive(false);
-    }
-
-    public void StartTimer()
-    {
         mStopTime = false;
+        mTimerTextTrans.gameObject.SetActive(false);
+        revivalCirclePS.gameObject.SetActive(false);
+        revivalCirclePS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        saveUITrans.gameObject.SetActive(false);
+
+        UI_FillUpSoulImage.gameObject.SetActive(false);
     }
 
-    public void StopTimer()
-    {
-        mStopTime = true;
-    }
+    public void StartTimer()  { mStopTime = false; }
+    public void StopTimer() { mStopTime = true; }
+
+    public SpriteRenderer GetSr { get { return sr; }  }
+    public List<Sprite> GetFillUpSpriteList{ get { return UI_FillUpSoulSprite; }  }
 
     void ResetDeadTimeToDefault()
     {
         mTimer = GameManager.sSingleton.plySoulTime;
         mTimerText.text = mTimer.ToString();
-        timerTextTrans.position = transform.GetChild(0).position;
-        timerTextTrans.gameObject.SetActive(true);
+        mTimerTextTrans.position = transform.GetChild(0).position;
+        mTimerTextTrans.gameObject.SetActive(true);
     }
 }

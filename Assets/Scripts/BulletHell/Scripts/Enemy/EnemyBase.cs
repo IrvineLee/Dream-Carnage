@@ -2,80 +2,52 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using UnityEngine.UI;
 
 public class EnemyBase : MonoBehaviour 
 {
-    [System.Serializable]
-    public class MoveInfo
-    {
-        [ReadOnly] public Vector3 target;
-        [ReadOnly] public Vector3 moveDirection;
-        [ReadOnly] public Vector3 velocity;
-        [ReadOnly] public int currWayPoint;
-    }
-
-    [System.Serializable]
-    public class Movement
-    {
-        [System.Serializable]
-        public class WayPoint
-        {
-            public Transform targetTrans;
-            public float speed;
-            public float startDelay;
-
-            public WayPoint()
-            {
-                this.targetTrans = null;
-                this.speed = 1;
-                this.startDelay = 0;
-            }
-        }
-
-        public List<WayPoint> wayPointList = new List<WayPoint>();
-        public bool isRepeat = false;
-        [HideInInspector] public bool isCoroutine;
-    }
-
-    // Status.
+    // Status for boss.
     public bool isBoss = false;
+    public float hpBarVisibleDistance = 8.0f;
     public float pingPongSpeed = 0.01f;
     public float pingPongVal = 0.005f;
     public bool isEndShakeScreen = false;
-    public int currHitPoint = 100;
-    public int totalHitPoint = 100;
-    public float moveSpeed = 1;
+    public float delayBeforeAttack;
+
+    // For minions.
+//    public EnemyManager.GroupIndex type;
+
+    public float currHitPoint = 100;
+    public float totalHitPoint = 100;
 
     public float scoreMultiplier = 1.0f;
-//    public int scoreGetPerBullet = 100;
+    public int defeatedScore = 1000;
+    public float defeatedMult = 0.01f;
 
     // Animation that is being used.
     public Animator anim;
+	[ReadOnly] public bool isHitByMagnumRadius = false;
 
     [ReadOnly] public int currActionNum = 0;
     public List<Transform> attackTransList = new List<Transform>();
-
-    // Enemy movement.
-    public MoveInfo moveInfo;
-    public List<Movement> movementList = new List<Movement>();
+    public List<float> attackDelayList = new List<float>();
 
     protected Transform mPlayer1, mPlayer2;
     protected List<List<Transform>> mBulletList = new List<List<Transform>>();
     protected SpriteRenderer sr;
-    protected MagicCirlce mMagicCircle;
+//    protected MagicCirlce mMagicCircle;
+    protected ParticleSystem mMagicCircle;
 
     protected List<List<Action>> mListOfActionList = new List<List<Action>>();
+    protected EnemyHealth mEnemyHealth;
+    protected EnemyMovement mEnemyMovement;
+    protected Color mDefaultColor;
 
-    Vector3 target;
-    bool mIsChangeColor = false, mIsPPUp = true, mIsGetPPTarget = true;
+    float mTotal = 0, mImageBottomY, mMagnumTimer, mMagnumMarkedDuration;
+	bool mIsChangeColor = false, mIsPPUp = true, mIsMarkedByMagnum = false;
 
-    Rigidbody2D rgBody;
     PlayerController mPlayer1Controller, mPlayer2Controller;
-
-    void Awake()
-    {
-        EnemyManager.sSingleton.AddToList(transform);
-    }
+    ItemDropController mItemDropController;
 
     public virtual void Start()
     {
@@ -88,140 +60,254 @@ public class EnemyBase : MonoBehaviour
             mPlayer2Controller = mPlayer2.GetComponent<PlayerController>();
         }
 
-        sr = GetComponent<SpriteRenderer>();
-        mMagicCircle = gameObject.GetComponentInChildren<MagicCirlce>();
+		sr = GetComponentInChildren<SpriteRenderer>();
+        mDefaultColor = sr.color;
+        mImageBottomY = GetComponentInChildren<Renderer>().bounds.size.y / 2;
 
-        rgBody = GetComponent<Rigidbody2D>();
+        for (int i = 0; i < transform.childCount; i++)
+        {
+            Transform currChild = transform.GetChild(i);
+            if (currChild.name == TagManager.sSingleton.UI_MagicCircleName)
+                mMagicCircle = currChild.GetComponent<ParticleSystem>();
+        }
+        mItemDropController = GetComponent<ItemDropController>();
+
+        if (isBoss)
+        {
+            EnemyHealth enemyHealth = EnemyManager.sSingleton.bossEnemyHealthBar;
+            enemyHealth.SetOwner(gameObject.transform);
+            mEnemyHealth = enemyHealth;
+//            mEnemyHealth.StartHpBarSequence();
+        }
+		if (GetComponentInChildren<EnemyMovement>() != null) mEnemyMovement = GetComponent<EnemyMovement>();
+
+        mMagnumMarkedDuration = GameManager.sSingleton.MagnumMarkedDuration;
     }
 
     public virtual void Update()
     {
-        if (UIManager.sSingleton.IsPauseMenu || 
-            BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.PLAYER_INPUT ||
-            BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.ACTIVATE_PAUSE) return;
+        if (UIManager.sSingleton.IsPauseGameOverMenu || BombManager.sSingleton.IsPause) return;
+
+        if (mIsMarkedByMagnum)
+        {
+            mMagnumTimer += Time.deltaTime;
+            if (mMagnumTimer >= mMagnumMarkedDuration)
+            {
+                mMagnumTimer = 0;
+                mIsMarkedByMagnum = false;
+            }
+        }
 
 		if (isBoss)
         {
-            if (mIsGetPPTarget)
-            {
-                target = transform.position;
-                mIsGetPPTarget = false;
+            Vector3 currPos = transform.position;
+            float val = pingPongSpeed * Time.deltaTime;
 
-                if (mIsPPUp) target.y += pingPongVal;
-                else target.y -= pingPongVal;
-            }
+            if (!mIsPPUp) val = -val;
 
-            transform.position = Vector3.MoveTowards(transform.position, target, pingPongSpeed * Time.deltaTime);
-            if (transform.position == target)
+            mTotal += Mathf.Abs(val);
+            if (mTotal >= pingPongVal)
             {
-                mIsGetPPTarget = true;
+                val = mTotal - pingPongVal;
+                if (!mIsPPUp) val = -val;
+
+                mTotal = 0;
                 mIsPPUp = !mIsPPUp;
             }
+
+            currPos.y += val;
+            transform.position = currPos;
         }
     }
 
     public void EnableMagicCircle()
     {
-        if(mMagicCircle != null)
-            mMagicCircle.enabled = true;
+        if (mMagicCircle != null) mMagicCircle.Play();
     }
 
     public void PullTrigger(Collider2D other)
     {
         if (currHitPoint <= 0) return;
 
-        int damage = 0;
+        float damage = 0;
         string otherLayer = LayerMask.LayerToName(other.gameObject.layer);
+        if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayEnemyGetHitSfx();
 
         if (otherLayer == TagManager.sSingleton.playerBulletLayer)
         {
-            damage = other.GetComponent<BulletMove>().GetBulletDamage;
-            other.gameObject.SetActive(false);
-        }
-        else damage = other.GetComponent<Laser>().dmgPerFrame;
-
-        GetDamaged(damage, other.tag);
-    }
-
-    protected IEnumerator MoveToWayPoint()
-    {
-        int savedActionNum = currActionNum;
-        movementList[savedActionNum].isCoroutine = true;
-        moveInfo.currWayPoint = 0;
-
-        while(savedActionNum == currActionNum)
-        {
-            Movement currMoveThisAct = movementList[savedActionNum];
-
-            int currWayIndex = moveInfo.currWayPoint;
-            if (currWayIndex < currMoveThisAct.wayPointList.Count)
+            if (other.GetComponent<BulletMove>() != null)
             {
-                Movement.WayPoint currWayPoint = currMoveThisAct.wayPointList[currWayIndex];
-                yield return new WaitForSeconds(currWayPoint.startDelay);
+                BulletMove bulletMove = other.GetComponent<BulletMove>();
+                damage = bulletMove.GetBulletDamage;
 
-                moveInfo.target = currWayPoint.targetTrans.position;
-                moveInfo.moveDirection = moveInfo.target - transform.position;
-                moveInfo.velocity = rgBody.velocity;
+                if (bulletMove.GetIsMagnum)
+                    mIsMarkedByMagnum = true;
 
-				if (moveInfo.moveDirection.magnitude < 0.5f) moveInfo.currWayPoint++;
-				else moveInfo.velocity = moveInfo.moveDirection.normalized * currWayPoint.speed;
+                if (!bulletMove.GetIsPiercing()) 
+                    other.gameObject.SetActive(false);
+
+                GetDamaged(damage, other, bulletMove.BulletType);
             }
-            else
+			else if (other.GetComponent<DamageWithinRadius>() != null && !isHitByMagnumRadius)
             {
-                if (currMoveThisAct.isRepeat) moveInfo.currWayPoint = 0;
-                else moveInfo.velocity = Vector3.zero;
+				mIsMarkedByMagnum = true;
+				isHitByMagnumRadius = true;
+
+                DamageWithinRadius dmgRad = other.GetComponent<DamageWithinRadius>();
+                GetDamaged(dmgRad.damage, other, BulletManager.GroupIndex.PLAYER_MAIN);
             }
-            rgBody.velocity = moveInfo.velocity;
-
-            yield return null;
         }
-        rgBody.velocity = Vector3.zero;  
-        movementList[savedActionNum].isCoroutine = false;
-    }
-
-    protected void StopCurrMovement(IEnumerator co) 
-    { 
-        if (co == null) return;
-        StopCoroutine(co);
-        rgBody.velocity = Vector3.zero;
-    }
-
-    void GetDamaged(int damagedValue, string otherTag)
-    {
-        float scoreGet = damagedValue * scoreMultiplier;
-
-        currHitPoint -= damagedValue;
-        if (currHitPoint <= 0)
+        else if (otherLayer == TagManager.sSingleton.playerBulletNoDestroyLayer)
         {
-            if (isEndShakeScreen) CameraShake.sSingleton.ShakeCamera();
+            Laser laser = other.GetComponent<Laser>();
+            damage = laser.GetDmgPerFrame;
+            GetDamaged(damage, other, BulletManager.GroupIndex.PLAYER_SECONDARY);
+        }
+    }
 
-            scoreGet = (currHitPoint + damagedValue) * scoreMultiplier;
+    public void StartHpBarSequence()
+    {
+        EnemyManager.sSingleton.bossEnemyHealthBar.StartHpBarSequence();
+    }
 
-            // TODO: Enemy destroyed animation..
-            Destroy(gameObject);
+    public void PlayEnemyDeathPS()
+    {
+        ParticleSystem ps = EnvObjManager.sSingleton.GetEnemyDeathPS ();
+        ps.transform.position = transform.position;
+        ps.Play ();
+    }
 
-            BulletManager.sSingleton.TransformBulletsIntoScorePU();
+    public void EnemyDiedByTime()
+    {
+        if (isBoss)
+        {
             BulletManager.sSingleton.DisableEnemyBullets(false);
             UIManager.sSingleton.DeactivateBossTimer();
+            EnemyManager.sSingleton.isBossDead = true;
+
+            if (isEndShakeScreen) CameraShake.sSingleton.ShakeCamera();
+            if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayBossExplodeSfx();
+
+            PlayEnemyDeathPS();
+            gameObject.SetActive (false);
         }
-
-        PlayerGainScore((int)scoreGet, otherTag);
-
-        if (!mIsChangeColor) StartCoroutine(GetDamagedColorChange());
     }
 
-    void PlayerGainScore(int val, string otherTag)
+    void GetDamaged(float damagedValue, Collider2D other, BulletManager.GroupIndex groupType)
     {
-        if (otherTag == TagManager.sSingleton.player1BulletTag)
+        float scoreGet = damagedValue * scoreMultiplier;
+        currHitPoint -= damagedValue;
+
+        ParticleSystem ps = EnvObjManager.sSingleton.GetEnemyHitImpactPS ();
+        Vector3 pos = other.gameObject.GetComponent<Collider2D>().bounds.ClosestPoint(transform.position);
+
+        BulletMove bulletMove = other.GetComponent<BulletMove>();
+        if ((bulletMove != null && bulletMove.GetIsPiercing()) || other.GetComponent<Laser>() != null) PlayEnemyGetHitImpactPS(ps, pos, true);
+        else PlayEnemyGetHitImpactPS(ps, pos, false);
+
+		if (!mIsChangeColor) StartCoroutine(GetDamagedColorChange());
+        if (currHitPoint <= 0)
         {
-            mPlayer1Controller.UpdateLinkBar();
-            mPlayer1Controller.UpdateScore(val);
+            if (isBoss)
+            {
+                BulletManager.sSingleton.TransformEnemyBulsIntoScorePU();
+                BulletManager.sSingleton.DisableEnemyBullets(false);
+
+                UIManager.sSingleton.DeactivateBossTimer();
+                EnemyManager.sSingleton.isBossDead = true;
+                mEnemyHealth.gameObject.SetActive(false);
+
+                if (isEndShakeScreen) CameraShake.sSingleton.ShakeCamera();
+                if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayBossExplodeSfx();
+            }
+            else if (mItemDropController != null)
+            {
+                if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayEnemyDestroyedSfx();
+                mItemDropController.ItemDropFunc();
+            }
+
+            if (mIsMarkedByMagnum)
+            {
+                Transform magnumRad = EnvObjManager.sSingleton.GetMagnumRadius();
+                magnumRad.position = transform.position;
+                magnumRad.gameObject.SetActive(true);
+                magnumRad.GetComponent<DamageWithinRadius>().PlayExplosion();
+
+                mMagnumTimer = 0;
+                mIsMarkedByMagnum = false;
+            }
+
+            if (other.tag == TagManager.sSingleton.player1BulletTag) mPlayer1Controller.UpdateMultiplier(defeatedMult);
+            else if (other.tag == TagManager.sSingleton.player2BulletTag) mPlayer2Controller.UpdateMultiplier(defeatedMult);
+            else if (other.tag == TagManager.sSingleton.magnumRadTag) 
+            {
+                int playerID = other.GetComponent<DamageWithinRadius> ().playerID;
+                if (playerID == 1) mPlayer1Controller.UpdateMultiplier(defeatedMult);
+                else if (playerID == 2) mPlayer2Controller.UpdateMultiplier(defeatedMult);
+            }
+                
+            scoreGet = (currHitPoint + damagedValue) * scoreMultiplier;
+			scoreGet += defeatedScore;
+
+			Transform trans = EnvObjManager.sSingleton.GetKillScore ();
+			trans.GetComponent<Text> ().text = defeatedScore.ToString();
+			trans.position = transform.position;
+			trans.gameObject.SetActive (true);
+
+            PlayEnemyDeathPS();
+			gameObject.SetActive (false);
         }
-        else if (otherTag == TagManager.sSingleton.player2BulletTag)
+
+		PlayerGainScore((int)scoreGet, other, groupType);
+    }
+
+    void PlayEnemyGetHitImpactPS(ParticleSystem ps, Vector3 pos, bool isPierce)
+    {
+        Vector3 newPos = pos;
+        if (!isPierce) newPos = new Vector3(pos.x, transform.position.y - mImageBottomY, 0);
+
+        ps.transform.position = newPos;
+        ps.Play ();
+    }
+
+	void PlayerGainScore(int val, Collider2D other, BulletManager.GroupIndex groupType)
+    {
+		int finalValue = 0;
+        if (other.tag == TagManager.sSingleton.player1BulletTag)
         {
-            mPlayer2Controller.UpdateLinkBar();
-            mPlayer2Controller.UpdateScore(val);
+            if (groupType == BulletManager.GroupIndex.PLAYER_MAIN) mPlayer1Controller.UpdateLinkBar();
+            else mPlayer1Controller.UpdateLinkBarForSecondary();
+
+            finalValue = (int)(val * mPlayer1Controller.scoreMult);
+			mPlayer1Controller.UpdateScore(finalValue);
         }
+        else if (other.tag == TagManager.sSingleton.player2BulletTag)
+        {
+            if (groupType == BulletManager.GroupIndex.PLAYER_MAIN) mPlayer2Controller.UpdateLinkBar();
+            else mPlayer2Controller.UpdateLinkBarForSecondary();
+
+            finalValue = (int)(val * mPlayer2Controller.scoreMult);
+			mPlayer2Controller.UpdateScore(finalValue);
+        }
+		else if (other.tag == TagManager.sSingleton.magnumRadTag) 
+		{
+			int playerID = other.GetComponent<DamageWithinRadius> ().playerID;
+
+			if (playerID == 1) 
+			{
+				mPlayer1Controller.UpdateLinkBar ();
+
+                finalValue = (int)(val * mPlayer1Controller.scoreMult);
+				mPlayer1Controller.UpdateScore (finalValue);
+			} 
+			else if (playerID == 2) 
+			{
+				mPlayer2Controller.UpdateLinkBar ();
+
+                finalValue = (int)(val * mPlayer2Controller.scoreMult);
+				mPlayer2Controller.UpdateScore(finalValue);
+			}
+		}
     }
 
     IEnumerator GetDamagedColorChange()

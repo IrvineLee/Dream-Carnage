@@ -147,6 +147,7 @@ public class DialogueDataCI : Editor
                     UpdateTotalWhenSwappingName(currCharName.ToString(), prevSelectedName.ToString());
                     SetCharacterDirectionFromOthers(currDialogue);
                     mSelf.UpdateSpriteList(i, currCharName);
+                    mSelf.UpdateCharacterInfo(ref currDialogue.character);
                 }
                 SetMessedUpMessage();
             }
@@ -157,6 +158,7 @@ public class DialogueDataCI : Editor
                 EditorGUI.BeginChangeCheck();
                 EditorGUIUtility.labelWidth = 30.0f;
                 currDialogue.isLeft = EditorGUILayout.Toggle("Left", currDialogue.isLeft);
+                currDialogue.isMiddleTop = EditorGUILayout.Toggle("MiddleTop", currDialogue.isMiddleTop);
 
                 if (EditorGUI.EndChangeCheck())
                 {
@@ -281,6 +283,11 @@ public class DialogueDataCI : Editor
                     EditorGUIUtility.labelWidth = 0;
                 }
             }
+            GUILayout.EndHorizontal();
+
+            if(mIsControlList[i]) EditorGUILayout.BeginHorizontal (mDifferentColorBgStyle);
+            else EditorGUILayout.BeginHorizontal ();
+            GUILayout.FlexibleSpace();
 
             if (mIsDisappearList.Count != 0 && mIsDisappearList[i] || currDialogue.time.moveOutTime > 0)
             {
@@ -291,6 +298,9 @@ public class DialogueDataCI : Editor
 
                     EditorGUIUtility.labelWidth = 35.0f;
                     currDialogue.time.moveOutTime = EditorGUILayout.FloatField("Time", currDialogue.time.moveOutTime, GUILayout.Width(70));
+
+                    if (currDialogue.disappearMeth == DialogueData.Dialogue.AppearMethod.FADE_ON_CLICK)
+                        currDialogue.time.moveOutID = EditorGUILayout.IntField("ID", currDialogue.time.moveOutID, GUILayout.Width(70));
                     EditorGUIUtility.labelWidth = 0;
                 }
             }

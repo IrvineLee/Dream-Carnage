@@ -6,7 +6,7 @@
     <ProductVersion>10.0.20506</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <RootNamespace></RootNamespace>
-    <ProjectGuid>{8A4C4515-E1A3-36C6-10F6-42E431399F2E}</ProjectGuid>
+    <ProjectGuid>{262F2C6E-0A2C-1961-D72B-CCC98826323E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <AssemblyName>Assembly-CSharp</AssemblyName>
@@ -46,8 +46,33 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Demo\Assets\CFX_AutoStopLoopedEffect.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Demo\Assets\CFX_Demo_New.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Demo\Assets\CFX_Demo_RandomDir.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Demo\Assets\CFX_Demo_RandomDirectionTranslate.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Demo\Assets\CFX_Demo_RotateCamera.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Demo\Assets\CFX_Demo_Translate.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Scripts\CFX_AutoDestructShuriken.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Scripts\CFX_AutoRotate.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Scripts\CFX_LightFlicker.cs" />
+     <Compile Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Scripts\CFX_LightIntensityFade.cs" />
+     <Compile Include="Assets\ParticleEffects\LightningBolt\LightningBoltScript.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Scripts\particleAttractorLinear.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Scripts\particleAttractorMove.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Scripts\particleAttractorSelf.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Scripts\particleAttractorSpherical.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Scripts\rotation.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Dissolve Shader by Moonflower Carnivore\Scripts\HUDFPS.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Dissolve Shader by Moonflower Carnivore\Scripts\PDS_GameController.cs" />
+     <Compile Include="Assets\ParticleEffects\Particle Dissolve Shader by Moonflower Carnivore\Scripts\ScrollingUVs_PDS.cs" />
+     <Compile Include="Assets\ParticleEffects\Seen\Almgp_particle_vol_1\script\sprite_sheet.cs" />
+     <Compile Include="Assets\ParticleEffects\Seen\KY_effects\Script\ConGUI.cs" />
+     <Compile Include="Assets\ParticleEffects\Seen\KY_effects\Script\Lighting.cs" />
+     <Compile Include="Assets\ParticleEffects\Seen\UETools\Magic_Particle_Effects\Scripts\CameraMovement.cs" />
      <Compile Include="Assets\Scripts\BulletHell\ScriptData\BulletPrefabData.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\ScriptData\CharacterInGameImageData.cs" />
      <Compile Include="Assets\Scripts\BulletHell\ScriptData\EnvObjPrefabData.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\ScriptData\PlayerNEnemyPrefabData.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\AttackPattern\AttackPattern.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\AttackPattern\SecondaryAttackType.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Attribute\ReadOnlyAttribute.cs" />
@@ -57,39 +82,99 @@
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\Enemy1.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\EnemyBase.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\EnemyHealth.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\EnemyMovement.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Enemy\MagicCirlce.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\AudioManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\BgManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\BombManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\BulletManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\EnemyManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\EnvObjManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\GameManager.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\JoystickManager.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\MainMenuManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\PotraitShowManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\TagManager.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\TutorialManager.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Manager\UIManager.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\AutoFadeInOut.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\CameraShake.cs" />
-     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\ChildRotateAround.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\CoroutineUtil.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DamageWithinRadius.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DeadZone.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\DontDestroyOnLoad.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\EnvironmentalObject.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\FadeController.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\ItemDropController.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\LevelController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\MessageController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\MessageOut.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\SetLineRenderer.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\SlideInMoveOut.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\TrapLaser.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\UIMinimizeShootSpark.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Others\WithinRange.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\BombController.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\ConvertEnemyBullet.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerController.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerHitBox.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\PlayerSoul.cs" />
+     <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\RepelStatus.cs" />
      <Compile Include="Assets\Scripts\BulletHell\Scripts\Player\ReviveController.cs" />
+     <Compile Include="Assets\Scripts\Test\BulletWipe.cs" />
+     <Compile Include="Assets\Scripts\Test\Circle.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\ScriptData\CharacterData.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\ScriptData\DialogueData.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Scripts\DialogueSlide.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Scripts\Manager\DialogueManager.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Scripts\Manager\EventManager.cs" />
      <Compile Include="Assets\Scripts\Visual Novel\Scripts\MenuButton.cs" />
+     <Compile Include="Assets\Seen\Fork Particle Variety Pack FX\Assets\Scripts\ForkAPI\CanvasButtonController.cs" />
+     <Compile Include="Assets\Seen\Fork Particle Variety Pack FX\Assets\Scripts\ForkAPI\ForkParticleEffect.cs" />
+     <Compile Include="Assets\Seen\Fork Particle Variety Pack FX\Assets\Scripts\ForkAPI\ForkParticlePlugin.cs" />
+     <Compile Include="Assets\Seen\Fork Particle Variety Pack FX\Assets\Scripts\ForkAPI\PSBAsset.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\Demo3.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\OrbitCamera.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\ParticleShooter.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\ShowFps.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\esc_menu.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleCharacter.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleEmit.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleEmitGun.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleEnemyAI.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleEnemyAI_Air.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleEnemyHealth.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleExplosion.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleLevelController.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleMissile.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleMissileLauncher.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleMuzzleRotation.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleParticleAddVector.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleParticleLookat.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\examplePaster.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleRandomForce.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleRotate.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleRotateTowards.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleTPS_Controller.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\exampleVectorController.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\mainTitle.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Example\script\particleCounter.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\ParticleManager.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\ReceiveParticle.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\particleBillboardRotation.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\particleCheckSphere.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\particleLimit2D.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\particlePaster.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\particlePaster_LifeTime.cs" />
+     <Compile Include="Assets\Seen\ParticleBulletSystem\Scripts\particlePlaneRaycast.cs" />
+     <None Include="Assets\ParticleEffects\Particle Attractor by Moonflower Carnivore\Shaders\Particles Additive Intensify.shader" />
+     <None Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Shaders\CFX3 Multiply Color.shader" />
+     <None Include="Assets\ParticleEffects\JMO Assets\Cartoon FX\Shaders\CFXM_MobileParticleAdd_Alpha8.shader" />
+     <None Include="Assets\ParticleEffects\Almgp_particle_vol_1\shaders\multypower_particle.shader" />
      <None Include="Assets\Shader\DiffuseNotEqualOne.shader" />
      <None Include="Assets\Shader\MaskOneZLess.shader" />
  <Reference Include="Facebook.Unity.Settings">
- <HintPath>C:/Users/Owner/Desktop/2018 Build Games/Dream Carnage/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
+ <HintPath>C:/Users/Owner/Desktop/Dream Carnage v1.77/Library/FacebookSDK/Facebook.Unity.Settings.dll</HintPath>
  </Reference>
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>

@@ -48,6 +48,8 @@ public class DialogueData : ScriptableObject
 			public float reOpenTime;    // Both character and dialogue close. Re-open after this value.
 			public float moveOutTime;   // Only used when this character moves out of the scene. 
 
+            public int moveOutID;
+
             public Time()
             {
                 this.moveInTime = 0;
@@ -83,12 +85,13 @@ public class DialogueData : ScriptableObject
 		{
 			FADE = 0,
 			SLIDE,
+            FADE_ON_CLICK
 		};
 
         public CharacterData.Info character;
         public List<Sentence> sentenceList;
 		public Time time;
-        public bool isLeft;
+        public bool isLeft, isMiddleTop;
 		public AppearMethod appearMeth, disappearMeth;
         public List<AnswerChoice> answerChoiceList;
 
@@ -179,7 +182,11 @@ public class DialogueData : ScriptableObject
     public void addTextBox(int dialogueIndex, CharacterData.Info.Character name)
     {
         Dialogue currDialogue = dialogueList[dialogueIndex];
-        currDialogue.sentenceList.Add(new Dialogue.Sentence("New text", characterData.GetCharacterSprites(name)[0], true));
+
+        Sprite sprite = null;
+        if (name.ToString() != "NONE") sprite = characterData.GetCharacterSprites(name)[0];
+
+        currDialogue.sentenceList.Add(new Dialogue.Sentence("New text", sprite, true));
     }
 
     public void deleteTextBox(int dialogueIndex)
@@ -201,16 +208,31 @@ public class DialogueData : ScriptableObject
         }
     }
 
+    public void UpdateCharacterInfo(ref CharacterData.Info characterInfo)
+    {
+        for (int i = 0; i < characterData.characterList.Count; i++)
+        {
+            if (characterInfo.name == characterData.characterList[i].name)
+            {
+                characterInfo.spriteList = characterData.characterList[i].spriteList;
+                characterInfo.charPosList = characterData.characterList[i].charPosList;
+            }
+        }
+    }
+
     public void addDialogue()
     {
         dialogueList.Add(new Dialogue());
         int index = dialogueList.Count - 1;
+
+        UpdateCharacterInfo(ref dialogueList[index].character);
         addTextBox(index, defaultCharacter);
     }
 
     public void addDialogue(int index)
     {
         dialogueList.Insert(index, new Dialogue());
+        UpdateCharacterInfo(ref dialogueList[index].character);
         addTextBox(index, defaultCharacter);
     }
 

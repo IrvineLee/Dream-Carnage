@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+[CanEditMultipleObjects]
 [CustomEditor(typeof(EnvironmentalObject))]
 public class EnvironmentalObjectCI : Editor 
 {
@@ -23,13 +24,18 @@ public class EnvironmentalObjectCI : Editor
         EditorGUILayout.PropertyField(serializedObject.FindProperty("speedFreeFall"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("speedToPlayer"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("value"));
+
+        EditorGUILayout.PropertyField(serializedObject.FindProperty("powerUpFull_GetValue"));
         EditorGUILayout.PropertyField(serializedObject.FindProperty("isDestructable"));
 
         if (mSelf.isDestructable)
         {
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("hitPoint"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("currHitPoint"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("maxHitPoint"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("impactMultiplier"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("extraLinkMultiplier"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("scoreMultiplier"));
+            EditorGUILayout.PropertyField(serializedObject.FindProperty("defeatedMult"));
         }
 
         serializedObject.ApplyModifiedProperties();
