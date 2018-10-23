@@ -372,6 +372,8 @@ public class AttackPattern : MonoBehaviour
         mAttackCoList.Clear();
     }
 
+    public void ResetWithinRangeHitList() { if (withinRange != null) withinRange.ResetHitList(); }
+
     IEnumerator PlayPotrait(float delay)
     {
         yield return new WaitForSeconds(delay);

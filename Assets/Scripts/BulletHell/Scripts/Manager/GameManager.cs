@@ -109,6 +109,7 @@ public class GameManager : MonoBehaviour
     {
         if (_sSingleton != null && _sSingleton != this) Destroy(this.gameObject);
         else _sSingleton = this;
+        
     }
 
 	void Start () 
@@ -433,6 +434,7 @@ public class GameManager : MonoBehaviour
 
                 BulletManager.sSingleton.DisableEnemyBullets(false);
                 EnemyManager.sSingleton.DisableAllEnemyOnScreen();
+                ResetWithinRangeHitList();
                 currState = State.DIALOGUE;
                 dialogueTime = 99999;
             }
@@ -444,8 +446,15 @@ public class GameManager : MonoBehaviour
         }
         else if (currState == State.TUTORIAL)
         {
-            TutorialManager.sSingleton.SetEnableTutorial();
-            currState = State.DIALOGUE;
+            if (!TutorialManager.sSingleton.GetisTutEnd)
+            {
+                TutorialManager.sSingleton.SetEnableTutorial();
+            }
+            else if (TutorialManager.sSingleton.GetisTutEnd)
+            {
+                SetToBattleState();
+            }
+            //currState = State.DIALOGUE;
         }
     }
 
@@ -455,6 +464,13 @@ public class GameManager : MonoBehaviour
 
         mP1ReviveController.ResetSoul();
         mP2ReviveController.ResetSoul();
+    }
+
+    // Clear the hit list of character 3 so that even if the enemy disappear, it will not still be in the list and targetting it.
+    public void ResetWithinRangeHitList()
+    {
+        mP1Controller.ResetHitListForChar3();
+        if (mP2Controller != null) mP2Controller.ResetHitListForChar3();
     }
 
     public void SetToTutorialState()
@@ -476,23 +492,39 @@ public class GameManager : MonoBehaviour
                 AudioManager.sSingleton.PlayInGameStage1BGM();
                 AudioManager.sSingleton.FadeInStageBGM();
             }
+            // After finished the second dialogue.
             else if (DialogueManager.sSingleton.currDialogueData == 2)
             {
                 rainPS.Play();
                 AudioManager.sSingleton.PlayInGameRainBGM();
                 AudioManager.sSingleton.FadeInRainBGM();
             }
+            // After finish fighting the boss
+            else if (DialogueManager.sSingleton.currDialogueData == 4)
+            {
+                currState = State.BATTLE;
+            }
         }
 
         if (EnemyManager.sSingleton.isBossAppeared)
         {
-            if (AudioManager.sSingleton != null)
+            if (!EnemyManager.sSingleton.isBossDead)
             {
-                AudioManager.sSingleton.StopBGM();
-                AudioManager.sSingleton.PlayInGameStage1BossBGM();
-                UIManager.sSingleton.ShowBossBGM();
+                // Start boss battle.
+                if (AudioManager.sSingleton != null)
+                {
+                    AudioManager.sSingleton.StopBGM();
+                    AudioManager.sSingleton.PlayInGameStage1BossBGM();
+                    UIManager.sSingleton.ShowBossBGM();
+                }
+                mCurrBoss.GetComponent<EnemyBase>().StartHpBarSequence();
             }
-            mCurrBoss.GetComponent<EnemyBase>().StartHpBarSequence();
+//            else if (EnemyManager.sSingleton.isBossDead)
+//            {
+//                // Reset boss variable.
+//                EnemyManager.sSingleton.isBossDead = false;
+//                EnemyManager.sSingleton.isBossAppeared = false;
+//            }
         }
     }
 

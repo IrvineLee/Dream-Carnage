@@ -83,7 +83,6 @@ public class EnvironmentalObject : MonoBehaviour
         }
         else if (state == State.MOVE_TOWARDS_PLAYER)
         {
-//            Debug.Log(mActivePlyHitBoxTrans.name + mActivePlyHitBoxTrans.gameObject.activeSelf);
             if (!mActivePlyHitBoxTrans.gameObject.activeSelf)
             {
 				Debug.Log ("No more active, change to FREE FALL..");

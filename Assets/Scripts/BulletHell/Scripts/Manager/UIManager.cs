@@ -203,31 +203,35 @@ public class UIManager : MonoBehaviour
         {
 			Transform pauseTrans = mPlayerUIList[mCurrPlayerIndex].pauseTrans;
             
-            if ( ((mCurrPlayerIndex == 0 && ((mIsP1KeybInput && Input.GetKeyDown(KeyCode.T)) || mVerticalP1 > 0 || mVerticalP1Dpad < 0)) ||
-                (mCurrPlayerIndex == 1 && (Input.GetKeyDown(KeyCode.UpArrow) || mVerticalP2 > 0 || mVerticalP2Dpad < 0))) && 
-                mPauseSelectIndex > 0 && !mIsP1VerticalAxisUsed)
+            if ( ((mCurrPlayerIndex == 0 && !mIsP1VerticalAxisUsed && ((mIsP1KeybInput && Input.GetKeyDown(KeyCode.T)) || mVerticalP1 > 0 || mVerticalP1Dpad < 0)) ||
+                (mCurrPlayerIndex == 1 && !mIsP2VerticalAxisUsed && (Input.GetKeyDown(KeyCode.UpArrow) || mVerticalP2 > 0 || mVerticalP2Dpad < 0))) && 
+                mPauseSelectIndex > 0)
             {
                 if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayMainMenuMoveSfx();
 
-                mIsP1VerticalAxisUsed = true;
+                if (mCurrPlayerIndex == 0) mIsP1VerticalAxisUsed = true;
+                else if (mCurrPlayerIndex == 1) mIsP2VerticalAxisUsed = true;
+
                 mPauseSelectIndex--;
                 pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = mSelectedButtonColor;
                 pauseTrans.GetChild(mPauseSelectIndex + 1).GetComponent<Image>().color = mUnselectedButtonColor;
             }
-            else if ( ((mCurrPlayerIndex == 0 && ((mIsP1KeybInput && Input.GetKeyDown(KeyCode.G)) || mVerticalP1 < 0 || mVerticalP1Dpad > 0)) ||
-                (mCurrPlayerIndex == 1 && (Input.GetKeyDown(KeyCode.DownArrow) || mVerticalP2 < 0 || mVerticalP2Dpad > 0) )) && 
-                mPauseSelectIndex < maxPauseButton - 1 && !mIsP1VerticalAxisUsed)
+            else if ( ((mCurrPlayerIndex == 0 && !mIsP1VerticalAxisUsed && ((mIsP1KeybInput && Input.GetKeyDown(KeyCode.G)) || mVerticalP1 < 0 || mVerticalP1Dpad > 0)) ||
+                (mCurrPlayerIndex == 1 && !mIsP2VerticalAxisUsed && (Input.GetKeyDown(KeyCode.DownArrow) || mVerticalP2 < 0 || mVerticalP2Dpad > 0) )) && 
+                mPauseSelectIndex < maxPauseButton - 1)
             {
                 if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayMainMenuMoveSfx();
 
-                mIsP1VerticalAxisUsed = true;
+                if (mCurrPlayerIndex == 0) mIsP1VerticalAxisUsed = true;
+                else if (mCurrPlayerIndex == 1) mIsP2VerticalAxisUsed = true;
+
                 mPauseSelectIndex++;
                 pauseTrans.GetChild(mPauseSelectIndex).GetComponent<Image>().color = mSelectedButtonColor;
                 pauseTrans.GetChild(mPauseSelectIndex - 1).GetComponent<Image>().color = mUnselectedButtonColor;
             }
 
             if ( (mCurrPlayerIndex == 0 && ((mIsP1KeybInput && Input.GetKeyDown(KeyCode.Z)) || Input.GetKeyDown(JoystickManager.sSingleton.p1_joystick.acceptKey))) || 
-				(mCurrPlayerIndex == 1 && Input.GetKeyDown(KeyCode.Period)))
+                (mCurrPlayerIndex == 1 && (Input.GetKeyDown(KeyCode.Period) || Input.GetKeyDown(JoystickManager.sSingleton.p2_joystick.acceptKey))) )
             {
                 if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayMainMenuAcceptSfx();
 

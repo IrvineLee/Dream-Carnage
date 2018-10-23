@@ -11,8 +11,6 @@ public class MainMenuManager : MonoBehaviour
     public static MainMenuManager sSingleton { get { return _sSingleton; } }
     static MainMenuManager _sSingleton;
 
-    public LevelController levelController;
-
     public Transform startScreenUI, highScore_UI, mainMenu_UI, option_UI, credit_UI, characterSelect_UI;
     public float fadeSpeed = 5, moveSpeed = 3.5f;
 
@@ -36,7 +34,7 @@ public class MainMenuManager : MonoBehaviour
 
     // Character select
     public Transform charLeftArrows, charRightArrows, nowLoadingTrans;
-    public Text timerText, p1Text, p2TopText, p2Text;
+    public Text timerText, p1Text, p1TopText, p1JpTopText, p2TopText, p2JpTopText, p2Text;
     public Text p1JpText, p2JpText;
     public Text char1Name, char1Bio, char2Name, char2Bio, char3Name, char3Bio;
     public Text char1NameJp, char1BioJp, char2NameJp, char2BioJp, char3NameJp, char3BioJp;
@@ -44,6 +42,7 @@ public class MainMenuManager : MonoBehaviour
     public float timerCountDown = 60, timerSpeed = 1, p2AlphaChangeSpeed = 1, p2Delay;
     public List<Transform> characterPotraitList;
     public Transform engCharSelect, jpCharSelect;
+    public Color selectingColor;
 
     //3 dots
     public Transform whiteDotL, whiteDotM, whiteDotR;
@@ -86,6 +85,15 @@ public class MainMenuManager : MonoBehaviour
     int currentAngle = 0;
 	float mTimer = 0, mEnterCharSelectWaitTimer;
 
+    // Video counter
+    public Canvas midTopCanvas;
+    public float pvIdleTime = 30.0f;
+    float videoTimer = 0;
+    public GameObject PV;
+    public float fadeTimer;
+    bool mIsFadeIn;
+    bool mIsFadeOut;
+
     public enum State
     {
         NONE = 0,
@@ -95,6 +103,7 @@ public class MainMenuManager : MonoBehaviour
         OPTION,
         CREDIT,
         CHARACTER_SELECT,
+        TRAILER
     };
     public State state = State.NONE;
 
@@ -124,6 +133,8 @@ public class MainMenuManager : MonoBehaviour
     bool mIsPressedStart, mIsStartEnded, mIsP1ArrowFade, mIsP2ArrowFade;
     IEnumerator mFadeCo;
     List<IEnumerator> mCharFadeCoList = new List<IEnumerator>();
+
+    LevelController mLevelController;
 
     public enum Language
     {
@@ -211,13 +222,14 @@ public class MainMenuManager : MonoBehaviour
         mControllerLayoutText = controlLayoutImg.GetComponentInChildren<Text>();
 
         if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayMainMenuBGM();
+
+        mLevelController = GetComponent<LevelController>();
     }
 
     public List<int> GetSelectedIndexList { get { return mSelectedIndexList; } }
 
     void Update()
     {
-
         mVerticalP1 = Input.GetAxis("VerticalP1");
         mVerticalP1Dpad = Input.GetAxis("VerticalP1Dpad");
         mHorizontalP1 = Input.GetAxis("HorizontalP1");
@@ -231,21 +243,66 @@ public class MainMenuManager : MonoBehaviour
 
         if (mHorizontalP2 == 0 && mHorizontalP1Dpad == 0) mIsP2HorizontalAxisUsed = false;
 
-        if (state == State.START_SCREEN) HandleStartScreenState();
-        else if (state == State.MAIN_MENU) HandleMainMenuState();
-        else if (state == State.HIGH_SCORE) HandleHighScoreState();
-        else if (state == State.CHARACTER_SELECT) HandleCharacterSelect();
-        else if (state == State.OPTION) HandleOptionState();
-        else if (state == State.CREDIT) HandleCredits();
+        if (state != State.TRAILER)
+        {
+            if (state == State.START_SCREEN) HandleStartScreenState();
+            else if (state == State.MAIN_MENU) HandleMainMenuState();
+            else if (state == State.HIGH_SCORE) HandleHighScoreState();
+            else if (state == State.CHARACTER_SELECT) HandleCharacterSelect();
+            else if (state == State.OPTION) HandleOptionState();
+            else if (state == State.CREDIT) HandleCredits();
+        }
+
+        // auto play video.
+//        if (!Input.anyKeyDown)
+//        {
+//            videoCount += Time.deltaTime;
+//        }
+//        else
+//        {
+//            videoCount = 0;
+//            if (!PV.gameObject.activeSelf)
+//            {
+//                Debug.Log("nothing happen");
+//            }
+//            else if (PV.gameObject.GetComponent<SpriteRenderer>().color.a == 1)
+//            {
+//                StartCoroutine(FadeOutVideo(1, PV.gameObject.GetComponent<SpriteRenderer>()));
+//                PV.gameObject.GetComponent<VideoPlayer>().Stop();
+//            }
+//        }
+//
+//        if (videoCount >= 20)
+//        {
+//            if (!mIsFadeIn) StartCoroutine(FadeInVideo(3, PV.gameObject.GetComponent<SpriteRenderer>()));
+//            if (mIsFadeIn) PV.gameObject.GetComponent<VideoPlayer>().Play();
+//
+//        }
+    }
+
+    public void EnableMainMenuObject(bool isEnable)
+    {
+        videoTimer = 0;
+        state = State.START_SCREEN;
+        mIsFading = false;
+
+        gameObject.SetActive(isEnable);
+        midTopCanvas.gameObject.SetActive(isEnable);
+//        mLevelController.blackBg.transform.parent.gameObject.SetActive(isEnable);
+        AudioManager.sSingleton.SetEnable(isEnable);
     }
 
     public void SetToDefaultScene()
     {
         //        AudioManager.sSingleton.StopBGM();
         Time.timeScale = 1;
-        AudioManager.sSingleton.ResetFadeIEnumerator();
-        AudioManager.sSingleton.SetBGM_Volume(1);
-        AudioManager.sSingleton.PlayMainMenuBGM();
+
+        if (AudioManager.sSingleton != null)
+        {
+            AudioManager.sSingleton.ResetFadeIEnumerator();
+            AudioManager.sSingleton.SetBGM_Volume(1);
+            AudioManager.sSingleton.PlayMainMenuBGM();
+        }
 
         mSelectedIndexList.Clear();
         mIsStartEnded = false;
@@ -262,7 +319,13 @@ public class MainMenuManager : MonoBehaviour
 
         for (int i = 0; i < characterPotraitList.Count; i++)
         {
-            SetSR_Alpha(characterPotraitList[i].GetComponentInChildren<SpriteRenderer>(), 0);
+            for (int j = 0; j < characterPotraitList[i].childCount; j++)
+            {
+                Transform trans = characterPotraitList[i].GetChild(j);
+                SpriteRenderer tempSR = trans.GetComponent<SpriteRenderer>();
+
+                if (tempSR != null) SetSR_Alpha(tempSR, 0);
+            }
         }
 
         SetText_Alpha(char1Name, 0);
@@ -287,13 +350,23 @@ public class MainMenuManager : MonoBehaviour
         }
         if (language == Language.ENGLISH)
         {
+            p1TopText.color = selectingColor;
             p1Text.text = mSelectCharStr;
+            p1Text.color = selectingColor;
+
+            p2TopText.color = Color.white;
             p2Text.text = mP2JoinStr;
+            p2Text.color = Color.white;
         }
         else
         {
+            p1JpTopText.color = selectingColor;
             p1JpText.text = mJpSelectCharStr;
+            p1JpText.color = selectingColor;
+
+            p2JpTopText.color = Color.white;
             p2JpText.text = mJpP2JoinStr;
+            p2JpText.color = Color.white;
         }
 
 
@@ -459,6 +532,14 @@ public class MainMenuManager : MonoBehaviour
     {
         if (mIsStartEnded) return;
 
+        videoTimer += Time.deltaTime;
+        if (videoTimer >= pvIdleTime)
+        {
+            state = State.TRAILER;
+            StartCoroutine(mLevelController.Fading("PV"));
+            return;
+        }
+
         if (!mIsFading && !mIsPressedStart)
         {
             mFadeCo = FadeTextInOut(startScreenText, alphaChangeSpeed, 0, () => { });
@@ -475,6 +556,7 @@ public class MainMenuManager : MonoBehaviour
         {
             if (!mIsCoroutine)
             {
+                videoTimer = 0;
                 PlayStartSfx();
                 mIsPressedStart = true;
                 mIsFading = false;
@@ -674,7 +756,7 @@ public class MainMenuManager : MonoBehaviour
                 mLanguageText.text = "Language";
                 mControllerLayoutText.text = "Controller Layout";
 
-                AudioManager.sSingleton.PlayMainMenuMoveSfx();
+                if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayMainMenuMoveSfx();
             }
             else if (language != Language.JAPANESE && ((mIsP1KeybInput && Input.GetKeyDown(KeyCode.H)) || mHorizontalP1 > 0 || mHorizontalP1Dpad > 0))
             {
@@ -693,7 +775,7 @@ public class MainMenuManager : MonoBehaviour
                 mLanguageText.text = "言語";
                 mControllerLayoutText.text = "ジョイスティック";
 
-                AudioManager.sSingleton.PlayMainMenuMoveSfx();
+                if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayMainMenuMoveSfx();
             }
         }
         else if (mOptionIndex == 3)
@@ -1101,9 +1183,8 @@ public class MainMenuManager : MonoBehaviour
             nowLoadingTrans.gameObject.SetActive(true);
             mNowLoadingPS.Play();
 
-            AudioManager.sSingleton.FadeOutBGM();
-            StartCoroutine(levelController.Fading("DreamCarnage"));
-
+            if (AudioManager.sSingleton != null) AudioManager.sSingleton.FadeOutBGM();
+            StartCoroutine(mLevelController.Fading("DreamCarnage"));
         }
     }
 
@@ -1324,8 +1405,24 @@ public class MainMenuManager : MonoBehaviour
         }
 
         SetDarkerColor(avatar2SR, 1);
-        if (language == Language.ENGLISH) p2Text.text = mSelectCharStr;
-        else p2JpText.text = mJpSelectCharStr;
+        if (language == Language.ENGLISH)
+        {
+            p1TopText.color = Color.white;
+            p1Text.color = Color.white;
+
+            p2TopText.color = selectingColor;
+            p2Text.text = mSelectCharStr;
+            p2Text.color = selectingColor;
+        }
+        else
+        {
+            p1JpTopText.color = Color.white;
+            p1JpText.color = Color.white;
+
+            p2JpTopText.color = selectingColor;
+            p2JpText.text = mJpSelectCharStr;
+            p2JpText.color = selectingColor;
+        }
 
         sliderDelay += charSelectDelay * 0.5f;
         mIsWaitForP2Reset = false;
@@ -1579,6 +1676,49 @@ public class MainMenuManager : MonoBehaviour
         }
     }
 
+    IEnumerator FadeInVideo(float t, SpriteRenderer item)
+    {
+        mIsFadeIn = true;
+        item.color = new Color(item.color.r, item.color.g, item.color.b, 0);
+        item.gameObject.SetActive(true);
+
+        while (item.color.a < 1)
+        {
+            // item transparent color = 1;
+            item.color = new Color(item.color.r, item.color.g, item.color.b, item.color.a + (Time.deltaTime / t));
+            yield return null;
+        }
+
+        if (item.color.a > 1)
+        {
+            item.color = new Color(item.color.r, item.color.g, item.color.b, 1);
+            yield break;
+        }
+        mIsFadeIn = false;
+    }
+
+    IEnumerator FadeOutVideo(float t, SpriteRenderer item)
+    {
+        item.color = new Color(item.color.r, item.color.g, item.color.b, 1);
+
+        while (item.color.a > 0)
+        {
+            // item transparent = 0
+            item.color = new Color(item.color.r, item.color.g, item.color.b, item.color.a - (Time.deltaTime / t));
+            yield return null;
+        }
+
+        if (item.color.a < 0)
+        {
+            item.color = new Color(item.color.r, item.color.g, item.color.g, 0);
+            Debug.Log("called");
+            item.gameObject.SetActive(false);
+            mIsFadeIn = false;
+            yield break;
+        }
+        mIsFadeOut = true;
+    }
+
     IEnumerator WaitThenFadeOut(Text text, float speed, float waitDur, Action doLast)
     {
         mIsFading = true;
@@ -1769,6 +1909,7 @@ public class MainMenuManager : MonoBehaviour
         asyncLoad.allowSceneActivation = true;
     }
 
+
     void SetInitialZAxis(Transform text)
     {
         text.rotation = Quaternion.Euler(0, 0, setInitialAxis);
@@ -1792,7 +1933,7 @@ public class MainMenuManager : MonoBehaviour
 
     void OnDisable()
     {
-        levelController.gameObject.SetActive(false);
+        if (mLevelController != null) mLevelController.gameObject.SetActive(false);
         if (nowLoadingTrans != null) nowLoadingTrans.gameObject.SetActive(false);
         if (mNowLoadingPS != null) mNowLoadingPS.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
         engCharSelect.gameObject.SetActive(false);

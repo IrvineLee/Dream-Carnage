@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-public class AudioManager : MonoBehaviour 
+public class AudioManager : MonoBehaviour
 {
     public static AudioManager sSingleton { get { return _sSingleton; } }
     static AudioManager _sSingleton;
@@ -11,6 +11,7 @@ public class AudioManager : MonoBehaviour
     // BgmSource 1 and 2 are the main bgm. BgmSource 3 is for pause menu.
     // SfxSource 1 and 2 is for player. SfxSource 3 is for enemy.
     public AudioSource bgmSource, bgmSource2, bgmSource3, sfxSource, sfxSource2, sfxSource3, sfxSource4, sfxSourceLoop, sfxSourceLoop2;
+    public AudioSource dialogueSource;
 
     // BGM value.
     public float fadeInSpeed = 0.1f;
@@ -52,7 +53,7 @@ public class AudioManager : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
     }
 
-    void Start ()
+    void Start()
     {
         mDefaultBGMVol = bgmSource.volume;
         mDefaultSFXVol = sfxSource.volume;
@@ -65,6 +66,13 @@ public class AudioManager : MonoBehaviour
 
     // ------------------------------------------ PLAY ----------------------------------------------------
 
+    public void PlayDialogue(AudioClip audioClip)
+    {
+        if (dialogueSource.isPlaying) dialogueSource.Stop();
+        dialogueSource.clip = audioClip;
+        dialogueSource.Play();
+    }
+
     public void PlayMainBGM_Sources()
     {
         PlayBGM_Source();
@@ -73,7 +81,7 @@ public class AudioManager : MonoBehaviour
 
     public void PlayBGM_Source() { bgmSource.Play(); }
     public void PlayBGM2_Source() { bgmSource2.Play(); }
-//    public void PlayBGMAfter(float sec) { StartCoroutine(WaitThenDo(sec, () => { bgmSource.Play(); } )); }
+    //    public void PlayBGMAfter(float sec) { StartCoroutine(WaitThenDo(sec, () => { bgmSource.Play(); } )); }
     public void PlayMainMenuBGM() { bgmSource.clip = mainMenuBGM; bgmSource.Play(); }
     public void PlayInGameDialogueBGM() { if (!bgmSource.isPlaying) { bgmSource.clip = inGameDialogueBGM; bgmSource.Play(); } }
     public void PlayInGameStage1BGM() { if (!bgmSource.isPlaying) { bgmSource.clip = inGameS1BGM; bgmSource.Play(); } }
@@ -86,6 +94,7 @@ public class AudioManager : MonoBehaviour
 
     // ------------------------------------------ STOP ----------------------------------------------------
 
+    public void StopDialogue() { dialogueSource.Stop(); }
     public void StopBGM() { bgmSource.Stop(); }
     public void StopMainBGM_Sources() { bgmSource.Stop(); bgmSource2.Stop(); }
     public void StopMainSFX_Sources() { sfxSourceLoop.Stop(); sfxSourceLoop2.Stop(); }
@@ -105,7 +114,7 @@ public class AudioManager : MonoBehaviour
     public void PlayMainStartGameSfx() { sfxSource.PlayOneShot(startGame); }
 
     // Weapon attack.
-    public void PlayRifleSfx() { if (!sfxSourceLoop.isPlaying) {sfxSourceLoop.clip = rifleShot; sfxSourceLoop.Play();} }
+    public void PlayRifleSfx() { if (!sfxSourceLoop.isPlaying) { sfxSourceLoop.clip = rifleShot; sfxSourceLoop.Play(); } }
     public void PlaySniperSfx() { AudioSource.PlayClipAtPoint(sniperShot, mCameraPos, sfxSource.volume * 0.6f); }
     public void PlayHandgunSfx() { AudioSource.PlayClipAtPoint(handgunShot, mCameraPos, sfxSource.volume * 0.6f); }
 
@@ -166,55 +175,51 @@ public class AudioManager : MonoBehaviour
     // Character 1 audio.
     public void PlayC1_GiveReviveAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC1_GiveReviveAudio1();
-        else PlayC1_GiveRevive2Audio();  
+        else PlayC1_GiveRevive2Audio();
     }
     public void PlayC1_SelfReviveAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC1_SelfReviveAudio1();
-        else PlayC1_SelfRevive2Audio();  
+        else PlayC1_SelfRevive2Audio();
     }
     public void PlayC1_UseSkillAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC1_UseSkillAudio1();
-        else PlayC1_UseSkill2Audio();  
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC1_UseSkillAudio1();
+        //else PlayC1_UseSkill2Audio();
+        PlayC1_UseSkillAudio1();
     }
     public void PlayC1_LinkFullChargeAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC1_LinkFullChargeAudio1();
-        else PlayC1_LinkFullCharge2Audio();  
+        else PlayC1_LinkFullCharge2Audio();
     }
     public void PlayC1_LinkUseAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC1_LinkUseAudio1();
-        else PlayC1_LinkUse2Audio();  
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC1_LinkUseAudio1();
+        //else PlayC1_LinkUse2Audio();
+        PlayC1_LinkUseAudio1();
     }
     public void PlayC1_DeathAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC1_DeathAudio1();
-        else PlayC1_Death2Audio(); 
+        else PlayC1_Death2Audio();
     }
     public void PlayC1_RandomCommentAudio()
     {
-        int val = UnityEngine.Random.Range(0, 4);
-        switch(val)
+        int val = UnityEngine.Random.Range(0, 3);
+        switch (val)
         {
             case 0: PlayC1_RandomComment1Audio(); break;
             case 1: PlayC1_RandomComment2Audio(); break;
             case 2: PlayC1_RandomComment3Audio(); break;
-            case 3: PlayC1_RandomComment4Audio(); break;
+            //case 3: PlayC1_RandomComment4Audio(); break;
             default: PlayC1_RandomComment1Audio(); break;
         }
     }
@@ -222,55 +227,51 @@ public class AudioManager : MonoBehaviour
     // Character 2 audio.
     public void PlayC2_GiveReviveAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC2_GiveRevive1Audio();
-        else PlayC2_GiveRevive2Audio(); 
+        else PlayC2_GiveRevive2Audio();
     }
     public void PlayC2_SelfReviveAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC2_SelfRevive1Audio();
-        else PlayC2_SelfRevive2Audio(); 
+        else PlayC2_SelfRevive2Audio();
     }
     public void PlayC2_UseSkillAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC2_UseSkill1Audio();
-        else PlayC2_UseSkill2Audio(); 
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC2_UseSkill1Audio();
+        //else PlayC2_UseSkill2Audio();
+        PlayC2_UseSkill1Audio();
     }
     public void PlayC2_LinkFullChargeAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC2_LinkFullCharge1Audio();
-        else PlayC2_LinkFullCharge2Audio(); 
+        else PlayC2_LinkFullCharge2Audio();
     }
     public void PlayC2_LinkUseAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC2_LinkUse1Audio();
-        else PlayC2_LinkUse2Audio(); 
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC2_LinkUse1Audio();
+        //else PlayC2_LinkUse2Audio();
+        PlayC2_LinkUse1Audio();
     }
     public void PlayC2_DeathAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC2_Death1Audio();
-        else PlayC2_Death2Audio(); 
+        else PlayC2_Death2Audio();
     }
     public void PlayC2_RandomCommentAudio()
     {
-        int val = UnityEngine.Random.Range(0, 4);
-        switch(val)
+        int val = UnityEngine.Random.Range(0, 2);
+        switch (val)
         {
             case 0: PlayC2_RandomCommentAudio1(); break;
             case 1: PlayC2_RandomComment2Audio(); break;
-            case 2: PlayC2_RandomComment3Audio(); break;
-            case 3: PlayC2_RandomComment4Audio(); break;
+            //case 2: PlayC2_RandomComment3Audio(); break;
+            //case 3: PlayC2_RandomComment4Audio(); break;
             default: PlayC2_RandomCommentAudio1(); break;
         }
     }
@@ -278,111 +279,109 @@ public class AudioManager : MonoBehaviour
     // Character 3 audio.
     public void PlayC3_GiveReviveAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC3_GiveRevive1Audio();
-        else PlayC3_GiveRevive2Audio(); 
+        else PlayC3_GiveRevive2Audio();
     }
     public void PlayC3_SelfReviveAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC3_SelfRevive1Audio();
-        else PlayC3_SelfRevive2Audio(); 
+        else PlayC3_SelfRevive2Audio();
     }
     public void PlayC3_UseSkillAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC3_UseSkill1Audio();
-        else PlayC3_UseSkill2Audio(); 
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC3_UseSkill1Audio();
+        //else PlayC3_UseSkill2Audio();
+        PlayC3_UseSkill1Audio();
     }
     public void PlayC3_LinkFullChargeAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC3_LinkFullCharge1Audio();
-        else PlayC3_LinkFullCharge2Audio(); 
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC3_LinkFullCharge1Audio();
+        //else PlayC3_LinkFullCharge2Audio();
+        PlayC3_LinkFullCharge1Audio();
     }
     public void PlayC3_LinkUseAudio()
     {
-        return;
-        int val = UnityEngine.Random.Range(0, 2);
-        if (val == 0) PlayC3_LinkUse1Audio();
-        else PlayC3_LinkUse2Audio(); 
+        //int val = UnityEngine.Random.Range(0, 2);
+        //if (val == 0) PlayC3_LinkUse1Audio();
+        //else PlayC3_LinkUse2Audio();
+        PlayC3_LinkUse1Audio();
     }
     public void PlayC3_DeathAudio()
     {
-        return;
         int val = UnityEngine.Random.Range(0, 2);
         if (val == 0) PlayC3_Death1Audio();
-        else PlayC3_Death2Audio(); 
+        else PlayC3_Death2Audio();
     }
     public void PlayC3_RandomCommentAudio()
     {
-        int val = UnityEngine.Random.Range(0, 4);
-        switch(val)
-        {
-            case 0: PlayC3_RandomComment1Audio(); break;
-            case 1: PlayC3_RandomComment2Audio(); break;
-            case 2: PlayC3_RandomComment3Audio(); break;
-            case 3: PlayC3_RandomComment4Audio(); break;
-            default: PlayC3_RandomComment1Audio(); break;
-        }
+        PlayC3_RandomComment1Audio();
+        //int val = UnityEngine.Random.Range(0, 4);
+        //switch (val)
+        //{
+        //    case 0: PlayC3_RandomComment1Audio(); break;
+        //    case 1: PlayC3_RandomComment2Audio(); break;
+        //    case 2: PlayC3_RandomComment3Audio(); break;
+        //    case 3: PlayC3_RandomComment4Audio(); break;
+        //    default: PlayC3_RandomComment1Audio(); break;
+        //}
     }
 
     public void PlayS1BossFinalAtk() { return; AudioSource.PlayClipAtPoint(s1BossFinalAtk, mCameraPos, sfxSource.volume * 1); }
 
-    void PlayC1_GiveReviveAudio1() { AudioSource.PlayClipAtPoint(c1AfterGiveRevive, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_GiveRevive2Audio() { AudioSource.PlayClipAtPoint(c1AfterGiveRevive2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_SelfReviveAudio1() { AudioSource.PlayClipAtPoint(c1SelfRevive, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_SelfRevive2Audio() { AudioSource.PlayClipAtPoint(c1SelfRevive2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_UseSkillAudio1() { AudioSource.PlayClipAtPoint(c1UseSkill, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_UseSkill2Audio() { AudioSource.PlayClipAtPoint(c1UseSkill2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_LinkFullChargeAudio1() { AudioSource.PlayClipAtPoint(c1LinkFullCharge, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_LinkFullCharge2Audio() { AudioSource.PlayClipAtPoint(c1LinkFullCharge2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_LinkUseAudio1() { AudioSource.PlayClipAtPoint(c1LinkUse, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_LinkUse2Audio() { AudioSource.PlayClipAtPoint(c1LinkUse2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_DeathAudio1() { AudioSource.PlayClipAtPoint(c1Death, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_Death2Audio() { AudioSource.PlayClipAtPoint(c1Death2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_RandomComment1Audio() { AudioSource.PlayClipAtPoint(c1RandComment, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_RandomComment2Audio() { AudioSource.PlayClipAtPoint(c1RandComment2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_RandomComment3Audio() { AudioSource.PlayClipAtPoint(c1RandComment3, mCameraPos, sfxSource.volume * 1); }
-    void PlayC1_RandomComment4Audio() { AudioSource.PlayClipAtPoint(c1RandComment4, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_GiveReviveAudio1() { if (c1AfterGiveRevive != null) AudioSource.PlayClipAtPoint(c1AfterGiveRevive, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_GiveRevive2Audio() { if (c1AfterGiveRevive2 != null) AudioSource.PlayClipAtPoint(c1AfterGiveRevive2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_SelfReviveAudio1() { if (c1SelfRevive != null) AudioSource.PlayClipAtPoint(c1SelfRevive, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_SelfRevive2Audio() { if (c1SelfRevive2 != null) AudioSource.PlayClipAtPoint(c1SelfRevive2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_UseSkillAudio1() { if (c1UseSkill != null) AudioSource.PlayClipAtPoint(c1UseSkill, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_UseSkill2Audio() { if (c1UseSkill2 != null) AudioSource.PlayClipAtPoint(c1UseSkill2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_LinkFullChargeAudio1() { if (c1LinkFullCharge != null) AudioSource.PlayClipAtPoint(c1LinkFullCharge, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_LinkFullCharge2Audio() { if (c1LinkFullCharge2 != null) AudioSource.PlayClipAtPoint(c1LinkFullCharge2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_LinkUseAudio1() { if (c1LinkUse != null) AudioSource.PlayClipAtPoint(c1LinkUse, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_LinkUse2Audio() { if (c1LinkUse2 != null) AudioSource.PlayClipAtPoint(c1LinkUse2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_DeathAudio1() { if (c1Death != null) AudioSource.PlayClipAtPoint(c1Death, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_Death2Audio() { if (c1Death2 != null) AudioSource.PlayClipAtPoint(c1Death2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_RandomComment1Audio() { if (c1RandComment != null) AudioSource.PlayClipAtPoint(c1RandComment, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_RandomComment2Audio() { if (c1RandComment2 != null) AudioSource.PlayClipAtPoint(c1RandComment2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_RandomComment3Audio() { if (c1RandComment3 != null) AudioSource.PlayClipAtPoint(c1RandComment3, mCameraPos, sfxSource.volume * 1); }
+    void PlayC1_RandomComment4Audio() { if (c1RandComment4 != null) AudioSource.PlayClipAtPoint(c1RandComment4, mCameraPos, sfxSource.volume * 1); }
 
-    void PlayC2_GiveRevive1Audio() { AudioSource.PlayClipAtPoint(c2AfterGiveRevive, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_GiveRevive2Audio() { AudioSource.PlayClipAtPoint(c2AfterGiveRevive2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_SelfRevive1Audio() { AudioSource.PlayClipAtPoint(c2SelfRevive, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_SelfRevive2Audio() { AudioSource.PlayClipAtPoint(c2SelfRevive2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_UseSkill1Audio() { AudioSource.PlayClipAtPoint(c2UseSkill, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_UseSkill2Audio() { AudioSource.PlayClipAtPoint(c2UseSkill2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_LinkFullCharge1Audio() { AudioSource.PlayClipAtPoint(c2LinkFullCharge, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_LinkFullCharge2Audio() { AudioSource.PlayClipAtPoint(c2LinkFullCharge2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_LinkUse1Audio() { AudioSource.PlayClipAtPoint(c2LinkUse, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_LinkUse2Audio() { AudioSource.PlayClipAtPoint(c2LinkUse2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_Death1Audio() { AudioSource.PlayClipAtPoint(c2Death, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_Death2Audio() { AudioSource.PlayClipAtPoint(c2Death2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_RandomCommentAudio1() { AudioSource.PlayClipAtPoint(c2RandComment, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_RandomComment2Audio() { AudioSource.PlayClipAtPoint(c2RandComment2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_RandomComment3Audio() { AudioSource.PlayClipAtPoint(c2RandComment3, mCameraPos, sfxSource.volume * 1); }
-    void PlayC2_RandomComment4Audio() { AudioSource.PlayClipAtPoint(c2RandComment4, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_GiveRevive1Audio() { if (c2AfterGiveRevive != null) AudioSource.PlayClipAtPoint(c2AfterGiveRevive, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_GiveRevive2Audio() { if (c2AfterGiveRevive2 != null) AudioSource.PlayClipAtPoint(c2AfterGiveRevive2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_SelfRevive1Audio() { if (c2SelfRevive != null) AudioSource.PlayClipAtPoint(c2SelfRevive, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_SelfRevive2Audio() { if (c2SelfRevive2 != null) AudioSource.PlayClipAtPoint(c2SelfRevive2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_UseSkill1Audio() { if (c2UseSkill != null) AudioSource.PlayClipAtPoint(c2UseSkill, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_UseSkill2Audio() { if (c2UseSkill2 != null) AudioSource.PlayClipAtPoint(c2UseSkill2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_LinkFullCharge1Audio() { if (c2LinkFullCharge != null) AudioSource.PlayClipAtPoint(c2LinkFullCharge, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_LinkFullCharge2Audio() { if (c2LinkFullCharge2 != null) AudioSource.PlayClipAtPoint(c2LinkFullCharge2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_LinkUse1Audio() { if (c2LinkUse != null) AudioSource.PlayClipAtPoint(c2LinkUse, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_LinkUse2Audio() { if (c2LinkUse2 != null) AudioSource.PlayClipAtPoint(c2LinkUse2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_Death1Audio() { if (c2Death != null) AudioSource.PlayClipAtPoint(c2Death, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_Death2Audio() { if (c2Death2 != null) AudioSource.PlayClipAtPoint(c2Death2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_RandomCommentAudio1() { if (c2RandComment != null) AudioSource.PlayClipAtPoint(c2RandComment, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_RandomComment2Audio() { if (c2RandComment2 != null) AudioSource.PlayClipAtPoint(c2RandComment2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_RandomComment3Audio() { if (c2RandComment3 != null) AudioSource.PlayClipAtPoint(c2RandComment3, mCameraPos, sfxSource.volume * 1); }
+    void PlayC2_RandomComment4Audio() { if (c2RandComment4 != null) AudioSource.PlayClipAtPoint(c2RandComment4, mCameraPos, sfxSource.volume * 1); }
 
-    void PlayC3_GiveRevive1Audio() { AudioSource.PlayClipAtPoint(c3AfterGiveRevive, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_GiveRevive2Audio() { AudioSource.PlayClipAtPoint(c3AfterGiveRevive2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_SelfRevive1Audio() { AudioSource.PlayClipAtPoint(c3SelfRevive, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_SelfRevive2Audio() { AudioSource.PlayClipAtPoint(c3SelfRevive2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_UseSkill1Audio() { AudioSource.PlayClipAtPoint(c3UseSkill, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_UseSkill2Audio() { AudioSource.PlayClipAtPoint(c3UseSkill2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_LinkFullCharge1Audio() { AudioSource.PlayClipAtPoint(c3LinkFullCharge, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_LinkFullCharge2Audio() { AudioSource.PlayClipAtPoint(c3LinkFullCharge2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_LinkUse1Audio() { AudioSource.PlayClipAtPoint(c3LinkUse, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_LinkUse2Audio() { AudioSource.PlayClipAtPoint(c3LinkUse2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_Death1Audio() { AudioSource.PlayClipAtPoint(c3Death, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_Death2Audio() { AudioSource.PlayClipAtPoint(c3Death2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_RandomComment1Audio() { AudioSource.PlayClipAtPoint(c3RandComment, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_RandomComment2Audio() { AudioSource.PlayClipAtPoint(c3RandComment2, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_RandomComment3Audio() { AudioSource.PlayClipAtPoint(c3RandComment3, mCameraPos, sfxSource.volume * 1); }
-    void PlayC3_RandomComment4Audio() { AudioSource.PlayClipAtPoint(c3RandComment4, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_GiveRevive1Audio() { if (c3AfterGiveRevive != null) AudioSource.PlayClipAtPoint(c3AfterGiveRevive, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_GiveRevive2Audio() { if (c3AfterGiveRevive2 != null) AudioSource.PlayClipAtPoint(c3AfterGiveRevive2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_SelfRevive1Audio() { if (c3SelfRevive != null) AudioSource.PlayClipAtPoint(c3SelfRevive, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_SelfRevive2Audio() { if (c3SelfRevive2 != null) AudioSource.PlayClipAtPoint(c3SelfRevive2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_UseSkill1Audio() { if (c3UseSkill != null) AudioSource.PlayClipAtPoint(c3UseSkill, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_UseSkill2Audio() { if (c3UseSkill2 != null) AudioSource.PlayClipAtPoint(c3UseSkill2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_LinkFullCharge1Audio() { if (c3LinkFullCharge != null) AudioSource.PlayClipAtPoint(c3LinkFullCharge, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_LinkFullCharge2Audio() { if (c3LinkFullCharge2 != null) AudioSource.PlayClipAtPoint(c3LinkFullCharge2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_LinkUse1Audio() { if (c3LinkUse != null) AudioSource.PlayClipAtPoint(c3LinkUse, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_LinkUse2Audio() { if (c3LinkUse2 != null) AudioSource.PlayClipAtPoint(c3LinkUse2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_Death1Audio() { if (c3Death != null) AudioSource.PlayClipAtPoint(c3Death, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_Death2Audio() { if (c3Death2 != null) AudioSource.PlayClipAtPoint(c3Death2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_RandomComment1Audio() { if (c3RandComment != null) AudioSource.PlayClipAtPoint(c3RandComment, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_RandomComment2Audio() { if (c3RandComment2 != null) AudioSource.PlayClipAtPoint(c3RandComment2, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_RandomComment3Audio() { if (c3RandComment3 != null) AudioSource.PlayClipAtPoint(c3RandComment3, mCameraPos, sfxSource.volume * 1); }
+    void PlayC3_RandomComment4Audio() { if (c3RandComment4 != null) AudioSource.PlayClipAtPoint(c3RandComment4, mCameraPos, sfxSource.volume * 1); }
 
     // ------------------------------------- SAVE / SET VALUE ---------------------------------------------
 
@@ -391,15 +390,15 @@ public class AudioManager : MonoBehaviour
         mCameraPos = Camera.main.transform.position;
     }
 
-    public void SaveBGMVol(float val) 
-    { 
-        mDefaultBGMVol = val; 
+    public void SaveBGMVol(float val)
+    {
+        mDefaultBGMVol = val;
         bgmSource.volume = val;
         bgmSource2.volume = val;
     }
-    public void SaveSFXVol(float val) 
-    { 
-        mDefaultSFXVol = val; 
+    public void SaveSFXVol(float val)
+    {
+        mDefaultSFXVol = val;
         sfxSource.volume = val;
         sfxSourceLoop.volume = val;
         sfxSourceLoop2.volume = val;
@@ -410,30 +409,30 @@ public class AudioManager : MonoBehaviour
 
     // ----------------------------------------------------------------------------------------------------
 
-    public void FadeInMainBGM ()
+    public void FadeInMainBGM()
     {
         StartCoroutine(FadeIn(bgmSource, fadeInSpeed));
         StartCoroutine(FadeIn(bgmSource2, fadeInSpeed));
     }
 
     // Stage audio.
-    public void FadeInStageBGM ()
+    public void FadeInStageBGM()
     {
         StartCoroutine(FadeIn(bgmSource, fadeInSpeed));
     }
 
     // Rain audio.
-    public void FadeInRainBGM ()
+    public void FadeInRainBGM()
     {
         StartCoroutine(FadeIn(bgmSource2, fadeInSpeed));
     }
 
-    public void FadeOutBGM ()
+    public void FadeOutBGM()
     {
         FadeOutFunc(bgmSource, fadeOutSpeed, StopBGM);
     }
 
-    public void FadeOutPauseBGM ()
+    public void FadeOutPauseBGM()
     {
         FadeOutFunc(bgmSource2, fadeOutSpeed, StopAndResetPauseBGMVol);
     }
@@ -457,6 +456,8 @@ public class AudioManager : MonoBehaviour
         mIsKeepFadeIn = false;
         mIsKeepFadeOut = false;
     }
+
+    public void SetEnable (bool isEnable) { gameObject.SetActive(isEnable); }
 
     // ------------------------------------ PRIVATE FUNCTION ---------------------------------------------
 
@@ -505,7 +506,7 @@ public class AudioManager : MonoBehaviour
         bgmSource.pitch = 1;
     }
 
-    IEnumerator FadeIn (AudioSource audioSource, float speed)
+    IEnumerator FadeIn(AudioSource audioSource, float speed)
     {
         mIsKeepFadeIn = true;
         mIsKeepFadeOut = false;
@@ -522,7 +523,7 @@ public class AudioManager : MonoBehaviour
         mIsKeepFadeIn = false;
     }
 
-    IEnumerator FadeOut (AudioSource audioSource, float speed, Action doLast)
+    IEnumerator FadeOut(AudioSource audioSource, float speed, Action doLast)
     {
         mIsKeepFadeIn = false;
         mIsKeepFadeOut = true;

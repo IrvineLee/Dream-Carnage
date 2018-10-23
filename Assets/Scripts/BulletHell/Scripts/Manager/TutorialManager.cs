@@ -13,7 +13,7 @@ public class TutorialManager : MonoBehaviour
 
     int curCount = 0;
     float mHorizontalP1, mHorizontalP1Dpad;
-    bool isLeft, isRight, mIsFadeIn, mIsFadeOut, mIsEnableTutorial, mAcceptP1, mSkipP1;
+    bool isLeft, isRight, mIsFadeIn, mIsFadeOut, mIsEnableTutorial, mAcceptP1, mSkipP1, isTutEnd;
 
     void Awake()
     {
@@ -33,7 +33,9 @@ public class TutorialManager : MonoBehaviour
         mHorizontalP1 = Input.GetAxis("HorizontalP1");
         mHorizontalP1Dpad = Input.GetAxis("HorizontalP1Dpad");
         mAcceptP1 = Input.GetKeyDown(JoystickManager.sSingleton.p1_joystick.acceptKey);
-        mSkipP1 = Input.GetKey(JoystickManager.sSingleton.p1_joystick.skipConvoKey);
+        mSkipP1 = Input.GetKeyDown(JoystickManager.sSingleton.p1_joystick.skipConvoKey);
+
+        if (mSkipP1 == false) mSkipP1 = Input.GetKeyDown(KeyCode.Space);
 
         if (mHorizontalP1 < 0 || mHorizontalP1Dpad < 0)
         {
@@ -83,6 +85,11 @@ public class TutorialManager : MonoBehaviour
             }
         }
     }
+    
+    public bool GetisTutEnd
+    {
+        get { return isTutEnd; }
+    }
 
     public void SetEnableTutorial()
     { 
@@ -95,8 +102,9 @@ public class TutorialManager : MonoBehaviour
         StartCoroutine(FadeOut(fadeTime, tutorials[curCount].gameObject.GetComponent<Image>()));
         tutorials[curCount].transform.parent.gameObject.SetActive(false);
         GameManager.sSingleton.SetToBattleState();
+        isTutEnd = true;
     }
-
+    
     IEnumerator FadeIn(float t, Image item)
     {
         mIsFadeIn = true;

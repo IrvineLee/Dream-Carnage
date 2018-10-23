@@ -69,6 +69,8 @@ public class WithinRange : MonoBehaviour
         return furthestTrans;
     }
 
+    public void ResetHitList() { hitList.Clear(); }
+
 	void OnTriggerEnter2D(Collider2D other)
 	{
 		if (other.tag == TagManager.sSingleton.enemyTag || other.tag == TagManager.sSingleton.ENV_OBJ_RockTag || 

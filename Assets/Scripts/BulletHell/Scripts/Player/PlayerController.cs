@@ -155,23 +155,26 @@ public class PlayerController : MonoBehaviour
         if (GameManager.sSingleton.currState == GameManager.State.DIALOGUE) DisableRifleSparks();
         if (state == State.DEAD || !GameManager.sSingleton.IsMoveDuringDialogue() || !GameManager.sSingleton.IsPlayerInteractable()) return;
 
-        if ( (playerID == 1 &&  ( (mIsP1KeybInput && Input.GetKeyDown(KeyCode.Escape)) || Input.GetKeyDown(mJoystick.startKey))) ||
-            ( playerID == 2 && (Input.GetKeyDown(KeyCode.KeypadMinus) || Input.GetKeyDown(mJoystick.startKey))) )
+        if (GameManager.sSingleton.currState != GameManager.State.DIALOGUE)
         {
-            if ((playerID == 1 && !UIManager.sSingleton.isPlayer2Pause) ||
-               (playerID == 2 && !UIManager.sSingleton.isPlayer1Pause))
+            if ( (playerID == 1 &&  ( (mIsP1KeybInput && Input.GetKeyDown(KeyCode.Escape)) || Input.GetKeyDown(mJoystick.startKey))) ||
+                ( playerID == 2 && (Input.GetKeyDown(KeyCode.KeypadMinus) || Input.GetKeyDown(mJoystick.startKey))) )
             {
-				bool isPauseMenu = UIManager.sSingleton.IsPause;
+                if ((playerID == 1 && !UIManager.sSingleton.isPlayer2Pause) ||
+                    (playerID == 2 && !UIManager.sSingleton.isPlayer1Pause))
+                {
+                    bool isPauseMenu = UIManager.sSingleton.IsPause;
 
-                if (!isPauseMenu)
-                {
-                    AudioManager.sSingleton.PauseClickOnSfx();
-                    UIManager.sSingleton.EnablePauseScreen(playerID);
-                }
-                else
-                {
-                    UIManager.sSingleton.DisablePauseScreen();
-                    AudioManager.sSingleton.PauseClickOffSfx();
+                    if (!isPauseMenu)
+                    {
+                        AudioManager.sSingleton.PauseClickOnSfx();
+                        UIManager.sSingleton.EnablePauseScreen(playerID);
+                    }
+                    else
+                    {
+                        UIManager.sSingleton.DisablePauseScreen();
+                        AudioManager.sSingleton.PauseClickOffSfx();
+                    }
                 }
             }
         }
@@ -200,9 +203,11 @@ public class PlayerController : MonoBehaviour
             // Handle the link bar.
             if (mOtherPlayerController != null && mOtherPlayerController.state != State.DEAD && !BombManager.sSingleton.IsPause && !BombManager.sSingleton.IsShooting)
             {
+                if (bomb == 0) DisableFlamePS();
+
+                // Handle the link bar alpha.
                 if (bomb == 0 || (mOtherPlayerController != null && mOtherPlayerController.bomb == 0))
                 {
-                    DisableFlamePS();
                     UIManager.sSingleton.DeactivateBothLinkBar();
                     UIManager.sSingleton.UpdateLinkBar(playerID, linkValue);
                 }
@@ -274,6 +279,8 @@ public class PlayerController : MonoBehaviour
             else return true;
         }
     }
+
+    public void ResetHitListForChar3() { mAttackPattern.ResetWithinRangeHitList(); }
 
     public void SlowlyReturnDefaultSpeed(bool isUnsDeltaTime)
     {
@@ -499,7 +506,7 @@ public class PlayerController : MonoBehaviour
             UIManager.sSingleton.UpdateScoreMultiplier(playerID, scoreMult);
 
             mReviveController.ResetSoul();
-            mOtherReviveController.ResetSoul();
+            if(mOtherReviveController != null) mOtherReviveController.ResetSoul();
 
             if (AudioManager.sSingleton != null)
             {
@@ -729,7 +736,7 @@ public class PlayerController : MonoBehaviour
                     }
 
                     // If both players gauge are full, stop time for input of second player.
-                    if (linkValue >= 1 && mOtherPlayerController.linkValue >= 1 && BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) 
+                    if (linkValue >= 1 && mOtherPlayerController.bomb >= 1 && mOtherPlayerController.linkValue >= 1 && BombManager.sSingleton.dualLinkState == BombManager.DualLinkState.NONE) 
                     {
                         if ((playerID == 1 && !BombManager.sSingleton.p2BombCtrl.IsUsingBomb) || (playerID == 2 && !BombManager.sSingleton.p1BombCtrl.IsUsingBomb))
                         {
@@ -955,7 +962,7 @@ public class PlayerController : MonoBehaviour
             if (other.tag == TagManager.sSingleton.ENV_OBJ_PowerUp1Tag || other.tag == TagManager.sSingleton.ENV_OBJ_PowerUp2Tag ||
                 other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUp1Tag || other.tag == TagManager.sSingleton.ENV_OBJ_ScorePickUp2Tag ||
                 other.tag == TagManager.sSingleton.ENV_OBJ_LifePickUpTag)
-                other.GetComponent<EnvironmentalObject>().SetPlayer(transform);
+                other.GetComponent<EnvironmentalObject>().SetPlayer(hitBoxTrans);
         }
     }
 }

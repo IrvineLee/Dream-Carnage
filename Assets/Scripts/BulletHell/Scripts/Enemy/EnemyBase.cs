@@ -184,6 +184,7 @@ public class EnemyBase : MonoBehaviour
             BulletManager.sSingleton.DisableEnemyBullets(false);
             UIManager.sSingleton.DeactivateBossTimer();
             EnemyManager.sSingleton.isBossDead = true;
+            GameManager.sSingleton.currState = GameManager.State.DIALOGUE;
 
             if (isEndShakeScreen) CameraShake.sSingleton.ShakeCamera();
             if (AudioManager.sSingleton != null) AudioManager.sSingleton.PlayBossExplodeSfx();
@@ -215,6 +216,7 @@ public class EnemyBase : MonoBehaviour
 
                 UIManager.sSingleton.DeactivateBossTimer();
                 EnemyManager.sSingleton.isBossDead = true;
+                GameManager.sSingleton.currState = GameManager.State.DIALOGUE;
                 mEnemyHealth.gameObject.SetActive(false);
 
                 if (isEndShakeScreen) CameraShake.sSingleton.ShakeCamera();

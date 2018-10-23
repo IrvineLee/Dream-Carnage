@@ -120,6 +120,7 @@ public class EnemyManager : MonoBehaviour
 //					GameManager.sSingleton.currState = GameManager.State.BOSS_MOVE_INTO_SCREEN;
 
                     DisableAllEnemyOnScreen();
+                    GameManager.sSingleton.ResetWithinRangeHitList();
                     EnvObjManager.sSingleton.DisableAllDestroyableObj();
 				}
 			}
